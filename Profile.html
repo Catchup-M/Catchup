@@ -44,6 +44,7 @@
       const [swipeCurrentY, setSwipeCurrentY] = useState(null);
       const [imageZoom, setImageZoom] = useState(1);
       const [isPinching, setIsPinching] = useState(false);
+      const [lastTap, setLastTap] = useState(0);
       const containerRef = useRef(null);
 
       const handleTouchStart = (e) => {
@@ -110,8 +111,15 @@
       };
 
       const handleImageClick = () => {
-        // Toggle between normal (1x) and zoomed (2x)
-        setImageZoom(imageZoom === 1 ? 2 : 1);
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
+        
+        if (now - lastTap < DOUBLE_TAP_DELAY) {
+          // Double tap detected - toggle zoom
+          setImageZoom(imageZoom === 1 ? 2 : 1);
+        }
+        
+        setLastTap(now);
       };
 
       useEffect(() => {
@@ -135,9 +143,6 @@
           {showImagePopup && (
             <div 
               className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 text-white">
@@ -166,7 +171,12 @@
               </div>
 
               {/* Image Container */}
-              <div className="flex-1 flex items-center justify-center -mt-20 overflow-hidden">
+              <div 
+                className="flex-1 flex items-center justify-center -mt-20 overflow-hidden"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
                 <img
                   src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
                   alt="VaVia"
