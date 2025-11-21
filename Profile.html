@@ -173,9 +173,6 @@
               {/* Image Container */}
               <div 
                 className="flex-1 flex items-center justify-center -mt-20 overflow-hidden"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
               >
                 <img
                   src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
@@ -186,6 +183,9 @@
                     pointerEvents: 'auto'
                   }}
                   onClick={handleImageClick}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onContextMenu={(e) => e.preventDefault()}
                   draggable="false"
                   onError={(e) => {
