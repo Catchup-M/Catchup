@@ -49,6 +49,7 @@
       const containerRef = useRef(null);
 
       const handleTouchStart = (e) => {
+        e.stopPropagation(); // Prevent event from bubbling
         if (e.touches.length === 2) {
           // Pinch gesture started
           setIsPinching(true);
@@ -60,6 +61,7 @@
       };
 
       const handleTouchMove = (e) => {
+        e.stopPropagation(); // Prevent event from bubbling
         if (e.touches.length === 2 && isPinching) {
           // Calculate pinch distance
           const touch1 = e.touches[0];
@@ -85,8 +87,8 @@
           const currentY = e.touches[0].clientY;
           const swipeDistance = currentY - swipeStartY;
           
-          // Prevent pull-to-refresh when swiping down
-          if (swipeDistance > 0) {
+          // Only prevent default for downward swipes to avoid pull-to-refresh
+          if (swipeDistance > 0 && imageZoom === 1) {
             e.preventDefault();
           }
           
@@ -94,15 +96,16 @@
         }
       };
 
-      const handleTouchEnd = () => {
+      const handleTouchEnd = (e) => {
+        e.stopPropagation(); // Prevent event from bubbling
         if (isPinching) {
           window.initialPinchDistance = null;
           window.initialZoom = null;
           setIsPinching(false);
         } else if (swipeStartY !== null && swipeCurrentY !== null) {
           const swipeDistance = swipeCurrentY - swipeStartY;
-          // If swiped down more than 100px, close the popup
-          if (swipeDistance > 100) {
+          // If swiped down more than 100px and not zoomed, close the popup
+          if (swipeDistance > 100 && imageZoom === 1) {
             setShowImagePopup(false);
             setImageZoom(1);
           }
@@ -111,7 +114,8 @@
         setSwipeCurrentY(null);
       };
 
-      const handleImageClick = () => {
+      const handleImageClick = (e) => {
+        e.stopPropagation(); // Prevent event from bubbling
         const now = Date.now();
         const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
         
