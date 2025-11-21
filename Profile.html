@@ -42,14 +42,44 @@
       const [showImagePopup, setShowImagePopup] = useState(false);
       const [swipeStartY, setSwipeStartY] = useState(null);
       const [swipeCurrentY, setSwipeCurrentY] = useState(null);
+      const [imageZoom, setImageZoom] = useState(1);
+      const [isPinching, setIsPinching] = useState(false);
       const containerRef = useRef(null);
 
       const handleTouchStart = (e) => {
-        setSwipeStartY(e.touches[0].clientY);
+        if (e.touches.length === 2) {
+          // Pinch gesture started
+          setIsPinching(true);
+          setSwipeStartY(null);
+        } else if (e.touches.length === 1) {
+          setSwipeStartY(e.touches[0].clientY);
+          setIsPinching(false);
+        }
       };
 
       const handleTouchMove = (e) => {
-        if (swipeStartY !== null) {
+        if (e.touches.length === 2 && isPinching) {
+          // Calculate pinch distance
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+          const distance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          
+          // Store initial distance if not set
+          if (!window.initialPinchDistance) {
+            window.initialPinchDistance = distance;
+            window.initialZoom = imageZoom;
+          }
+          
+          // Calculate zoom based on pinch
+          const scale = distance / window.initialPinchDistance;
+          const newZoom = Math.max(1, Math.min(3, window.initialZoom * scale));
+          setImageZoom(newZoom);
+          
+          e.preventDefault();
+        } else if (swipeStartY !== null && !isPinching && e.touches.length === 1) {
           const currentY = e.touches[0].clientY;
           const swipeDistance = currentY - swipeStartY;
           
@@ -63,15 +93,25 @@
       };
 
       const handleTouchEnd = () => {
-        if (swipeStartY !== null && swipeCurrentY !== null) {
+        if (isPinching) {
+          window.initialPinchDistance = null;
+          window.initialZoom = null;
+          setIsPinching(false);
+        } else if (swipeStartY !== null && swipeCurrentY !== null) {
           const swipeDistance = swipeCurrentY - swipeStartY;
           // If swiped down more than 100px, close the popup
           if (swipeDistance > 100) {
             setShowImagePopup(false);
+            setImageZoom(1);
           }
         }
         setSwipeStartY(null);
         setSwipeCurrentY(null);
+      };
+
+      const handleImageClick = () => {
+        // Toggle between normal (1x) and zoomed (2x)
+        setImageZoom(imageZoom === 1 ? 2 : 1);
       };
 
       useEffect(() => {
@@ -126,11 +166,16 @@
               </div>
 
               {/* Image Container */}
-              <div className="flex-1 flex items-center justify-center -mt-20">
+              <div className="flex-1 flex items-center justify-center -mt-20 overflow-hidden">
                 <img
                   src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
                   alt="VaVia"
-                  className="w-full h-auto object-contain max-h-full"
+                  className="w-full h-auto object-contain max-h-full cursor-pointer transition-transform duration-300"
+                  style={{ 
+                    transform: `scale(${imageZoom})`,
+                    pointerEvents: 'auto'
+                  }}
+                  onClick={handleImageClick}
                   onContextMenu={(e) => e.preventDefault()}
                   draggable="false"
                   onError={(e) => {
