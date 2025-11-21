@@ -13,10 +13,9 @@
     overflow:hidden;
   }
 
-  /* Hidden until touch */
   #c {
     position:fixed;
-    display:none;   /* hide initially */
+    display:none;
     touch-action:none;
   }
 </style>
@@ -29,7 +28,7 @@
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
-// Joystick sizes (unchanged)
+// Sizes (unchanged)
 const OUTER_RADIUS = 70;
 const RING_THICKNESS = 10;
 const KNOB_RADIUS = 20;
@@ -42,11 +41,6 @@ function setCanvasSize(){
 }
 setCanvasSize();
 
-function drawBackground(){
-  ctx.fillStyle="#ffffff";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-}
-
 const center = {x:0,y:0};
 const state = {
   knobPos:{x:0,y:0},
@@ -54,26 +48,31 @@ const state = {
   active:false
 };
 
+function drawBackground(){
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+}
+
 function drawRing(){
   const cx = center.x, cy = center.y;
   const knobX = cx + state.knobPos.x;
   const knobY = cy + state.knobPos.y;
 
-  // ring
+  // Outer ring
   ctx.beginPath();
   ctx.lineWidth = RING_THICKNESS;
   ctx.strokeStyle="#000";
   ctx.arc(cx, cy, OUTER_RADIUS, 0, Math.PI*2);
   ctx.stroke();
 
-  // knob outline
+  // Knob outline
   ctx.beginPath();
   ctx.lineWidth = KNOB_STROKE;
   ctx.strokeStyle="#000";
   ctx.arc(knobX, knobY, KNOB_RADIUS, 0, Math.PI*2);
   ctx.stroke();
 
-  // knob fill
+  // Knob fill
   ctx.beginPath();
   ctx.fillStyle="#ffffff";
   ctx.arc(knobX, knobY, KNOB_RADIUS - KNOB_STROKE/2, 0, Math.PI*2);
@@ -87,6 +86,7 @@ function draw(){
   drawRing();
 }
 
+// Convert screen pos → canvas pos
 function clientToCanvas(ev){
   const rect = canvas.getBoundingClientRect();
   let x,y;
@@ -103,21 +103,24 @@ function clientToCanvas(ev){
   };
 }
 
+
+// 🌟 FIXED → listen on window, not canvas
 function pointerDown(ev){
   ev.preventDefault();
 
-  // Show joystick at touch position
   const touchX = ev.touches ? ev.touches[0].clientX : ev.clientX;
   const touchY = ev.touches ? ev.touches[0].clientY : ev.clientY;
 
+  // Position joystick at touch
   const size = canvas.width;
   canvas.style.left = (touchX - size/2) + "px";
   canvas.style.top  = (touchY - size/2) + "px";
 
+  // Show joystick
   canvas.style.display = "block";
 
-  state.active = true;
   state.dragging = true;
+  state.active = true;
   draw();
 }
 
@@ -126,11 +129,12 @@ function pointerMove(ev){
   ev.preventDefault();
 
   const pos = clientToCanvas(ev);
+
   let nx = pos.x - center.x;
   let ny = pos.y - center.y;
 
-  const mag = Math.hypot(nx,ny);
   const max = OUTER_RADIUS - KNOB_RADIUS - (RING_THICKNESS/2);
+  const mag = Math.hypot(nx,ny);
 
   if(mag > max){
     nx = nx/mag*max;
@@ -145,22 +149,22 @@ function pointerMove(ev){
 function pointerUp(){
   state.dragging = false;
 
-  // Reset to center & hide
+  // Reset & hide
   state.knobPos.x = 0;
   state.knobPos.y = 0;
   draw();
 
-  canvas.style.display = "none";  // hide joystick
+  canvas.style.display="none";
 }
 
-// events
-canvas.addEventListener("mousedown", pointerDown);
-window.addEventListener("mousemove", pointerMove);
-window.addEventListener("mouseup", pointerUp);
-
-canvas.addEventListener("touchstart", pointerDown, {passive:false});
+// 🔥 GLOBAL EVENT LISTENERS
+window.addEventListener("touchstart", pointerDown, {passive:false});
 window.addEventListener("touchmove", pointerMove, {passive:false});
 window.addEventListener("touchend", pointerUp);
+
+window.addEventListener("mousedown", pointerDown);
+window.addEventListener("mousemove", pointerMove);
+window.addEventListener("mouseup", pointerUp);
 </script>
 
 </body>
