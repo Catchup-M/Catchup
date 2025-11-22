@@ -26,13 +26,40 @@
       }
     }
 
+    @keyframes slideInFromRight {
+      0% {
+        transform: translateX(100%);
+      }
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideOutToRight {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
     .expanding {
       animation: expandToFullScreen 0.3s ease-out forwards;
+    }
+
+    .chat-slide-in {
+      animation: slideInFromRight 0.3s ease-out forwards;
+    }
+
+    .chat-slide-out {
+      animation: slideOutToRight 0.3s ease-out forwards;
     }
   </style>
 </head>
 <body>
   <div id="root"></div>
+  <script type="text/babel" src="chat.js"></script>
   <script type="text/babel" src="conversation-list.js"></script>
 </body>
 </html>
