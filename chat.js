@@ -310,15 +310,15 @@ function CatchupChat({ onBack }) {
           </svg>
         </button>
 
-        <div className="flex items-center flex-1 ml-2" onMouseDown={(e) => e.preventDefault()}>
-          <img src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg" alt="VaVia" className="w-11 h-11 rounded-full object-cover" />
-          <div className="ml-3 flex-1">
-            <h1 className="text-base font-semibold text-gray-900 leading-tight">VaVia</h1>
-            <p className="text-xs text-gray-500 leading-tight">last seen Nov 3 at 02:18 AM</p>
+        <div className="flex items-center flex-1 ml-2 min-w-0" onMouseDown={(e) => e.preventDefault()}>
+          <img src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg" alt="VaVia" className="w-11 h-11 rounded-full object-cover flex-shrink-0" />
+          <div className="ml-3 flex-1 min-w-0">
+            <h1 className="text-base font-semibold text-gray-900 leading-tight truncate">VaVia</h1>
+            <p className="text-xs text-gray-500 leading-tight truncate">last seen Nov 3 at 02:18 AM</p>
           </div>
         </div>
 
-        <button className="p-2 -mr-2 hover:bg-gray-200 rounded-full transition-colors bg-gray-100" onMouseDown={(e) => e.preventDefault()}>
+        <button className="p-2 -mr-2 hover:bg-gray-200 rounded-full transition-colors bg-gray-100 flex-shrink-0" onMouseDown={(e) => e.preventDefault()}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-800">
             <path d="M6 9l6 6 6-6" />
           </svg>
@@ -331,10 +331,9 @@ function CatchupChat({ onBack }) {
       {/* Scrollable Chat Area */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-4 relative bg-white"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-4 relative bg-white"
         style={{ 
-          scrollBehavior: 'smooth',
-          overflowX: 'hidden'
+          scrollBehavior: 'smooth'
         }}
         onMouseDown={(e) => e.preventDefault()}
       >
@@ -484,7 +483,7 @@ function CatchupChat({ onBack }) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         [contenteditable][data-placeholder][data-empty="true"]:empty:before {
           content: attr(data-placeholder);
           color: #6b7280;
