@@ -26,7 +26,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useRef, useEffect } = React;
+    const { useState, useRef, useEffect, useCallback } = React;
 
     // Lucide Icons as components
     const Info = () => (
@@ -41,12 +41,43 @@
       const [isCollapsed, setIsCollapsed] = useState(false);
       const [showImagePopup, setShowImagePopup] = useState(false);
       const [swipeStartY, setSwipeStartY] = useState(null);
+      const [swipeStartX, setSwipeStartX] = useState(null); // Added
       const [swipeCurrentY, setSwipeCurrentY] = useState(null);
       const [imageZoom, setImageZoom] = useState(1);
+      const [imageTranslateX, setImageTranslateX] = useState(0); // Added
+      const [imageTranslateY, setImageTranslateY] = useState(0); // Added
       const [isPinching, setIsPinching] = useState(false);
       const [lastTap, setLastTap] = useState(0);
       const [showDropdown, setShowDropdown] = useState(false);
       const containerRef = useRef(null);
+      const imageRef = useRef(null); // Added ref for image
+
+      // Function to reset zoom and pan
+      const resetImageState = useCallback(() => {
+        setImageZoom(1);
+        setImageTranslateX(0);
+        setImageTranslateY(0);
+      }, []);
+
+      const getBounds = () => {
+        if (!imageRef.current) return { maxTranslateX: 0, maxTranslateY: 0 };
+        
+        const imageWidth = imageRef.current.clientWidth;
+        const imageHeight = imageRef.current.clientHeight;
+        const popupWidth = window.innerWidth;
+        const popupHeight = window.innerHeight;
+
+        // Calculate the effective zoomed size
+        const zoomedWidth = imageWidth * imageZoom;
+        const zoomedHeight = imageHeight * imageZoom;
+
+        // Max translation is half the difference between zoomed size and popup size
+        // This ensures the edge of the image reaches the edge of the popup
+        const maxTranslateX = Math.max(0, (zoomedWidth - popupWidth) / 2);
+        const maxTranslateY = Math.max(0, (zoomedHeight - popupHeight) / 2);
+
+        return { maxTranslateX, maxTranslateY };
+      };
 
       const handleTouchStart = (e) => {
         e.stopPropagation(); // Prevent event from bubbling
@@ -54,15 +85,27 @@
           // Pinch gesture started
           setIsPinching(true);
           setSwipeStartY(null);
+          setSwipeStartX(null); // Reset single touch tracking
         } else if (e.touches.length === 1) {
           setSwipeStartY(e.touches[0].clientY);
+          setSwipeStartX(e.touches[0].clientX); // Track X start
+          
+          // Store initial translate for drag calculation
+          window.initialTranslateX = imageTranslateX;
+          window.initialTranslateY = imageTranslateY;
+          window.lastTouchX = e.touches[0].clientX;
+          window.lastTouchY = e.touches[0].clientY;
+
           setIsPinching(false);
         }
       };
 
       const handleTouchMove = (e) => {
         e.stopPropagation(); // Prevent event from bubbling
+        const { maxTranslateX, maxTranslateY } = getBounds();
+
         if (e.touches.length === 2 && isPinching) {
+          // --- Pinch Handling ---
           // Calculate pinch distance
           const touch1 = e.touches[0];
           const touch2 = e.touches[1];
@@ -81,18 +124,51 @@
           const scale = distance / window.initialPinchDistance;
           const newZoom = Math.max(1, Math.min(3, window.initialZoom * scale));
           setImageZoom(newZoom);
-          
-          e.preventDefault();
-        } else if (swipeStartY !== null && !isPinching && e.touches.length === 1) {
-          const currentY = e.touches[0].clientY;
-          const swipeDistance = currentY - swipeStartY;
-          
-          // Only prevent default for downward swipes to avoid pull-to-refresh
-          if (swipeDistance > 0 && imageZoom === 1) {
-            e.preventDefault();
+
+          // Reset translation when zoom changes to prevent image jumping/out-of-bounds
+          if (newZoom !== imageZoom) {
+            setImageTranslateX(0);
+            setImageTranslateY(0);
+            window.initialTranslateX = 0;
+            window.initialTranslateY = 0;
           }
           
-          setSwipeCurrentY(currentY);
+          e.preventDefault();
+
+        } else if (swipeStartY !== null && !isPinching && e.touches.length === 1) {
+          const currentY = e.touches[0].clientY;
+          const currentX = e.touches[0].clientX;
+          const swipeDistanceY = currentY - swipeStartY;
+          
+          // --- Drag/Swipe Handling ---
+          if (imageZoom > 1) {
+            // Drag (Pan) when zoomed
+            const deltaX = currentX - window.lastTouchX;
+            const deltaY = currentY - window.lastTouchY;
+            
+            let newTranslateX = imageTranslateX + deltaX;
+            let newTranslateY = imageTranslateY + deltaY;
+
+            // Clamp translation to boundaries
+            newTranslateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, newTranslateX));
+            newTranslateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, newTranslateY));
+
+            setImageTranslateX(newTranslateX);
+            setImageTranslateY(newTranslateY);
+            
+            window.lastTouchX = currentX;
+            window.lastTouchY = currentY;
+
+            e.preventDefault(); // Prevent page scroll/refresh during image pan
+
+          } else {
+            // Swipe Down to Close (when not zoomed)
+            setSwipeCurrentY(currentY);
+            // Only prevent default for downward swipes to avoid pull-to-refresh
+            if (swipeDistanceY > 0) {
+              e.preventDefault();
+            }
+          }
         }
       };
 
@@ -103,15 +179,22 @@
           window.initialZoom = null;
           setIsPinching(false);
         } else if (swipeStartY !== null && swipeCurrentY !== null) {
-          const swipeDistance = swipeCurrentY - swipeStartY;
+          const swipeDistanceY = swipeCurrentY - swipeStartY;
           // If swiped down more than 100px and not zoomed, close the popup
-          if (swipeDistance > 100 && imageZoom === 1) {
+          if (swipeDistanceY > 100 && imageZoom === 1) {
             setShowImagePopup(false);
-            setImageZoom(1);
+            resetImageState(); // Reset state on close
           }
         }
+        
+        // Cleanup all touch tracking states
         setSwipeStartY(null);
+        setSwipeStartX(null);
         setSwipeCurrentY(null);
+        window.initialTranslateX = null;
+        window.initialTranslateY = null;
+        window.lastTouchX = null;
+        window.lastTouchY = null;
       };
 
       const handleImageClick = (e) => {
@@ -121,7 +204,13 @@
         
         if (now - lastTap < DOUBLE_TAP_DELAY) {
           // Double tap detected - toggle zoom
-          setImageZoom(imageZoom === 1 ? 2 : 1);
+          const newZoom = imageZoom === 1 ? 2 : 1;
+          setImageZoom(newZoom);
+          // Reset pan when zooming out
+          if (newZoom === 1) {
+            setImageTranslateX(0);
+            setImageTranslateY(0);
+          }
         }
         
         setLastTap(now);
@@ -157,6 +246,7 @@
                     e.stopPropagation();
                     setShowImagePopup(false);
                     setShowDropdown(false);
+                    resetImageState(); // Reset state on close
                   }}
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,12 +309,16 @@
                 className="flex-1 flex items-center justify-center -mt-20 overflow-hidden"
               >
                 <img
+                  ref={imageRef}
                   src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
                   alt="VaVia"
-                  className="w-full h-auto object-contain max-h-full cursor-pointer transition-transform duration-300"
+                  className="w-full h-auto object-contain max-h-full cursor-pointer transition-transform duration-100 ease-out"
                   style={{ 
-                    transform: `scale(${imageZoom})`,
-                    pointerEvents: 'auto'
+                    // Apply both scale (zoom) and translate (pan)
+                    transform: `translate(${imageTranslateX}px, ${imageTranslateY}px) scale(${imageZoom})`,
+                    pointerEvents: 'auto',
+                    // Disable transition when zoomed for smooth dragging
+                    transition: imageZoom === 1 ? 'transform 300ms ease-out' : 'none'
                   }}
                   onClick={handleImageClick}
                   onTouchStart={handleTouchStart}
@@ -384,3 +478,4 @@
   </script>
 </body>
 </html>
+
