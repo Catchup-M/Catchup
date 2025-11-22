@@ -9,17 +9,8 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body, html {
-      overflow-x: hidden;
-      width: 100%;
-      height: 100%;
-      overscroll-behavior: none;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { overflow-x: hidden; width: 100%; height: 100%; overscroll-behavior: none; }
   </style>
 </head>
 <body>
@@ -28,8 +19,7 @@
   <script type="text/babel">
     const { useState, useRef, useEffect, useCallback } = React;
 
-    // Lucide Icons as components
-    const Info = () => (
+    const InfoIcon = () => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -41,18 +31,17 @@
       const [isCollapsed, setIsCollapsed] = useState(false);
       const [showImagePopup, setShowImagePopup] = useState(false);
       const [swipeStartY, setSwipeStartY] = useState(null);
-      const [swipeStartX, setSwipeStartX] = useState(null); // Added
+      const [swipeStartX, setSwipeStartX] = useState(null);
       const [swipeCurrentY, setSwipeCurrentY] = useState(null);
       const [imageZoom, setImageZoom] = useState(1);
-      const [imageTranslateX, setImageTranslateX] = useState(0); // Added
-      const [imageTranslateY, setImageTranslateY] = useState(0); // Added
+      const [imageTranslateX, setImageTranslateX] = useState(0);
+      const [imageTranslateY, setImageTranslateY] = useState(0);
       const [isPinching, setIsPinching] = useState(false);
       const [lastTap, setLastTap] = useState(0);
       const [showDropdown, setShowDropdown] = useState(false);
       const containerRef = useRef(null);
-      const imageRef = useRef(null); // Added ref for image
+      const imageRef = useRef(null);
 
-      // Function to reset zoom and pan
       const resetImageState = useCallback(() => {
         setImageZoom(1);
         setImageTranslateX(0);
@@ -61,169 +50,114 @@
 
       const getBounds = () => {
         if (!imageRef.current) return { maxTranslateX: 0, maxTranslateY: 0 };
-        
         const imageWidth = imageRef.current.clientWidth;
         const imageHeight = imageRef.current.clientHeight;
         const popupWidth = window.innerWidth;
         const popupHeight = window.innerHeight;
-
-        // Calculate the effective zoomed size
         const zoomedWidth = imageWidth * imageZoom;
         const zoomedHeight = imageHeight * imageZoom;
-
-        // Max translation is half the difference between zoomed size and popup size
-        // This ensures the edge of the image reaches the edge of the popup
         const maxTranslateX = Math.max(0, (zoomedWidth - popupWidth) / 2);
         const maxTranslateY = Math.max(0, (zoomedHeight - popupHeight) / 2);
-
         return { maxTranslateX, maxTranslateY };
       };
 
       const handleTouchStart = (e) => {
-        e.stopPropagation(); // Prevent event from bubbling
+        e.stopPropagation();
         if (e.touches.length === 2) {
-          // Pinch gesture started
           setIsPinching(true);
           setSwipeStartY(null);
-          setSwipeStartX(null); // Reset single touch tracking
+          setSwipeStartX(null);
         } else if (e.touches.length === 1) {
           setSwipeStartY(e.touches[0].clientY);
-          setSwipeStartX(e.touches[0].clientX); // Track X start
-          
-          // Store initial translate for drag calculation
+          setSwipeStartX(e.touches[0].clientX);
           window.initialTranslateX = imageTranslateX;
           window.initialTranslateY = imageTranslateY;
           window.lastTouchX = e.touches[0].clientX;
           window.lastTouchY = e.touches[0].clientY;
-
           setIsPinching(false);
         }
       };
 
       const handleTouchMove = (e) => {
-        e.stopPropagation(); // Prevent event from bubbling
+        e.stopPropagation();
         const { maxTranslateX, maxTranslateY } = getBounds();
 
         if (e.touches.length === 2 && isPinching) {
-          // --- Pinch Handling ---
-          // Calculate pinch distance
           const touch1 = e.touches[0];
           const touch2 = e.touches[1];
-          const distance = Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
-          );
-          
-          // Store initial distance if not set
+          const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
           if (!window.initialPinchDistance) {
             window.initialPinchDistance = distance;
             window.initialZoom = imageZoom;
           }
-          
-          // Calculate zoom based on pinch
           const scale = distance / window.initialPinchDistance;
           const newZoom = Math.max(1, Math.min(3, window.initialZoom * scale));
           setImageZoom(newZoom);
-
-          // Reset translation when zoom changes to prevent image jumping/out-of-bounds
           if (newZoom !== imageZoom) {
             setImageTranslateX(0);
             setImageTranslateY(0);
-            window.initialTranslateX = 0;
-            window.initialTranslateY = 0;
           }
-          
           e.preventDefault();
-
         } else if (swipeStartY !== null && !isPinching && e.touches.length === 1) {
           const currentY = e.touches[0].clientY;
           const currentX = e.touches[0].clientX;
-          const swipeDistanceY = currentY - swipeStartY;
-          
-          // --- Drag/Swipe Handling ---
           if (imageZoom > 1) {
-            // Drag (Pan) when zoomed
             const deltaX = currentX - window.lastTouchX;
             const deltaY = currentY - window.lastTouchY;
-            
             let newTranslateX = imageTranslateX + deltaX;
             let newTranslateY = imageTranslateY + deltaY;
-
-            // Clamp translation to boundaries
             newTranslateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, newTranslateX));
             newTranslateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, newTranslateY));
-
             setImageTranslateX(newTranslateX);
             setImageTranslateY(newTranslateY);
-            
             window.lastTouchX = currentX;
             window.lastTouchY = currentY;
-
-            e.preventDefault(); // Prevent page scroll/refresh during image pan
-
+            e.preventDefault();
           } else {
-            // Swipe Down to Close (when not zoomed)
             setSwipeCurrentY(currentY);
-            // Only prevent default for downward swipes to avoid pull-to-refresh
-            if (swipeDistanceY > 0) {
-              e.preventDefault();
-            }
+            if (currentY - swipeStartY > 0) e.preventDefault();
           }
         }
       };
 
       const handleTouchEnd = (e) => {
-        e.stopPropagation(); // Prevent event from bubbling
+        e.stopPropagation();
         if (isPinching) {
           window.initialPinchDistance = null;
           window.initialZoom = null;
           setIsPinching(false);
         } else if (swipeStartY !== null && swipeCurrentY !== null) {
           const swipeDistanceY = swipeCurrentY - swipeStartY;
-          // If swiped down more than 100px and not zoomed, close the popup
           if (swipeDistanceY > 100 && imageZoom === 1) {
             setShowImagePopup(false);
-            resetImageState(); // Reset state on close
+            resetImageState();
           }
         }
-        
-        // Cleanup all touch tracking states
         setSwipeStartY(null);
         setSwipeStartX(null);
         setSwipeCurrentY(null);
-        window.initialTranslateX = null;
-        window.initialTranslateY = null;
-        window.lastTouchX = null;
-        window.lastTouchY = null;
       };
 
       const handleImageClick = (e) => {
-        e.stopPropagation(); // Prevent event from bubbling
+        e.stopPropagation();
         const now = Date.now();
-        const DOUBLE_TAP_DELAY = 300; // 300ms window for double tap
-        
-        if (now - lastTap < DOUBLE_TAP_DELAY) {
-          // Double tap detected - toggle zoom
+        if (now - lastTap < 300) {
           const newZoom = imageZoom === 1 ? 2 : 1;
           setImageZoom(newZoom);
-          // Reset pan when zooming out
           if (newZoom === 1) {
             setImageTranslateX(0);
             setImageTranslateY(0);
           }
         }
-        
         setLastTap(now);
       };
 
       useEffect(() => {
         const handleScroll = () => {
           if (containerRef.current) {
-            const scrollPosition = containerRef.current.scrollTop;
-            setIsCollapsed(scrollPosition > 200);
+            setIsCollapsed(containerRef.current.scrollTop > 200);
           }
         };
-
         const container = containerRef.current;
         if (container) {
           container.addEventListener('scroll', handleScroll);
@@ -233,22 +167,13 @@
 
       return (
         <div ref={containerRef} className="h-screen overflow-y-auto overflow-x-hidden bg-white w-full">
-          {/* Image Popup */}
+
+          {/* FULL ORIGINAL IMAGE POPUP - completely restored */}
           {showImagePopup && (
-            <div 
-              className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden touch-none"
-            >
-              {/* Header */}
+            <div className="fixed inset-0 bg-black z-[100] flex flex-col overflow-hidden touch-none">
               <div className="flex items-center justify-between p-4 text-white relative z-20">
-                <button 
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors z-10 pointer-events-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowImagePopup(false);
-                    setShowDropdown(false);
-                    resetImageState(); // Reset state on close
-                  }}
-                >
+                <button className="p-2 hover:bg-white/10 rounded-full transition-colors z-10 pointer-events-auto"
+                  onClick={(e) => { e.stopPropagation(); setShowImagePopup(false); setShowDropdown(false); resetImageState(); }}>
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M5 12l7 7M5 12l7-7" />
                   </svg>
@@ -257,13 +182,8 @@
                   <div className="font-semibold">Vavia's</div>
                   <div className="text-sm opacity-75">January 11 at 5:13 PM</div>
                 </div>
-                <button 
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors z-10 pointer-events-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowDropdown(!showDropdown);
-                  }}
-                >
+                <button className="p-2 hover:bg-white/10 rounded-full transition-colors z-10 pointer-events-auto"
+                  onClick={(e) => { e.stopPropagation(); setShowDropdown(!showDropdown); }}>
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="5" r="2"/>
                     <circle cx="12" cy="12" r="2"/>
@@ -271,30 +191,17 @@
                   </svg>
                 </button>
 
-                {/* Dropdown Menu */}
                 {showDropdown && (
                   <div className="absolute top-16 right-4 bg-gray-900 rounded-lg shadow-xl overflow-hidden z-20 min-w-[200px] pointer-events-auto">
-                    <button 
-                      className="w-full flex items-center gap-4 px-4 py-3 text-white hover:bg-gray-800 transition-colors text-left"
-                      onClick={() => {
-                        // Save to gallery functionality
-                        alert('Save to Gallery clicked');
-                        setShowDropdown(false);
-                      }}
-                    >
+                    <button className="w-full flex items-center gap-4 px-4 py-3 text-white hover:bg-gray-800 transition-colors text-left"
+                      onClick={() => { alert('Save to Gallery clicked'); setShowDropdown(false); }}>
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span className="text-base">Save to Gallery</span>
                     </button>
-                    <button 
-                      className="w-full flex items-center gap-4 px-4 py-3 text-white hover:bg-gray-800 transition-colors text-left"
-                      onClick={() => {
-                        // Share functionality
-                        alert('Share clicked');
-                        setShowDropdown(false);
-                      }}
-                    >
+                    <button className="w-full flex items-center gap-4 px-4 py-3 text-white hover:bg-gray-800 transition-colors text-left"
+                      onClick={() => { alert('Share clicked'); setShowDropdown(false); }}>
                       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                       </svg>
@@ -304,20 +211,14 @@
                 )}
               </div>
 
-              {/* Image Container */}
-              <div 
-                className="flex-1 flex items-center justify-center -mt-20 overflow-hidden"
-              >
+              <div className="flex-1 flex items-center justify-center -mt-20 overflow-hidden">
                 <img
                   ref={imageRef}
                   src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
                   alt="VaVia"
                   className="w-full h-auto object-contain max-h-full cursor-pointer transition-transform duration-100 ease-out"
                   style={{ 
-                    // Apply both scale (zoom) and translate (pan)
                     transform: `translate(${imageTranslateX}px, ${imageTranslateY}px) scale(${imageZoom})`,
-                    pointerEvents: 'auto',
-                    // Disable transition when zoomed for smooth dragging
                     transition: imageZoom === 1 ? 'transform 300ms ease-out' : 'none'
                   }}
                   onClick={handleImageClick}
@@ -326,75 +227,37 @@
                   onTouchEnd={handleTouchEnd}
                   onContextMenu={(e) => e.preventDefault()}
                   draggable="false"
-                  onError={(e) => {
-                    console.error('Image failed to load');
-                    e.target.style.display = 'none';
-                  }}
                 />
               </div>
             </div>
           )}
 
           {/* Collapsed Header */}
-          <div 
-            className={`fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 transition-all duration-300 ${
-              isCollapsed ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-            }`}
-          >
+          <div className={`fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 transition-all duration-300 ${isCollapsed ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
             <div className="flex items-center px-4 py-3 gap-3">
               <button className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
                 <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 12H5M5 12l7 7M5 12l7-7" />
                 </svg>
               </button>
-              <div 
-                className={`rounded-full overflow-hidden shadow-sm transition-all duration-300 flex-shrink-0 ${
-                  isCollapsed ? 'w-10 h-10 opacity-100 scale-100' : 'w-0 h-0 opacity-0 scale-0'
-                }`}
-              >
-                <img
-                  src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
+              <div className={`rounded-full overflow-hidden shadow-sm transition-all duration-300 flex-shrink-0 ${isCollapsed ? 'w-10 h-10 opacity-100 scale-100' : 'w-0 h-0 opacity-0 scale-0'}`}>
+                <img src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg" alt="Profile" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-gray-900 truncate">VaVia</h3>
                 <p className="text-xs text-gray-500 truncate">@vavia</p>
               </div>
-              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0">
-                <svg className="w-6 h-6 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
-                  <circle cx="12" cy="5" r="2"/>
-                  <circle cx="12" cy="12" r="2"/>
-                  <circle cx="12" cy="19" r="2"/>
-                </svg>
-              </button>
             </div>
           </div>
 
-          {/* Profile Section */}
+          {/* Profile Header */}
           <div className={`relative w-full h-48 transition-all duration-300 ${isCollapsed ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-            {/* Background with gradient only */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-black/15"></div>
-
-            {/* Profile Content at Bottom */}
             <div className="absolute bottom-3 left-3.5 flex items-center">
-              {/* Avatar */}
-              <div 
-                className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-white mr-3 shadow-lg cursor-pointer"
-                onClick={() => setShowImagePopup(true)}
-              >
-                <img
-                  src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg"
-                  alt="VaVia"
-                  className="w-full h-full object-cover"
-                  draggable="false"
-                  onContextMenu={(e) => e.preventDefault()}
-                  style={{ userSelect: 'none' }}
-                />
+              <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-white mr-3 shadow-lg cursor-pointer"
+                onClick={() => setShowImagePopup(true)}>
+                <img src="https://i.ibb.co/C5b875C6/Screenshot-20250904-050841.jpg" alt="VaVia" className="w-full h-full object-cover" draggable="false" />
               </div>
-
-              {/* Name and Username */}
               <div className="text-white">
                 <div className="text-lg font-bold">VaVia</div>
                 <div className="text-sm opacity-80 mt-0.5">@vavia</div>
@@ -406,7 +269,7 @@
           <div className="px-4 py-4">
             <div className="flex items-start space-x-4 mb-6">
               <div className="p-2 bg-gray-100 rounded-full flex-shrink-0">
-                <Info className="w-6 h-6 text-gray-600" />
+                <InfoIcon className="w-6 h-6 text-gray-600" />
               </div>
               <div className="flex-1">
                 <p className="text-gray-900 mb-1">
@@ -419,57 +282,23 @@
               </div>
             </div>
 
-            {/* Link Section */}
-            <div className="flex items-start space-x-4 mb-6">
-              <div className="p-2 bg-gray-100 rounded-full flex-shrink-0">
-                <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-gray-900 mb-1">t.me/julivavilovaa</p>
-                <p className="text-gray-500 text-sm mt-2">Link</p>
-              </div>
+            {/* Super slim Share Profile button - "Link" text removed */}
+            <div className="mx-4 mb-5">
+              <a 
+                href="https://t.me/julivavilovaa" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full bg-sky-500 hover:bg-sky-600 text-white font-medium text-center py-2.5 rounded-lg transition-colors duration-200 text-sm tracking-wider"
+              >
+                Share Profile
+              </a>
             </div>
           </div>
 
-          {/* Tabs Section */}
-          <div className="border-t border-gray-100">
-            <div className="flex items-center justify-around px-4 bg-white">
-              <button className="flex-1 py-4 text-center text-blue-500 font-semibold relative">
-                Posts
-                <span className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t-sm"></span>
-              </button>
-              <button className="flex-1 py-4 text-center text-gray-500 font-semibold">
-                Gifts
-              </button>
-              <button className="flex-1 py-4 text-center text-gray-500 font-semibold">
-                Media
-              </button>
-              <button className="flex-1 py-4 text-center text-gray-500 font-semibold">
-                Links
-              </button>
-              <button className="flex-1 py-4 text-center text-gray-500 font-semibold">
-                GIFs
-              </button>
-            </div>
+          {/* Thin separator line only */}
+          <div className="border-t border-gray-100"></div>
 
-            {/* Content Grid */}
-            <div className="grid grid-cols-3 gap-px bg-gray-200">
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-              <div className="aspect-square bg-gray-100"></div>
-            </div>
-          </div>
-
-          {/* Bottom Border */}
-          <div className="border-t border-gray-100 pb-20"></div>
+          <div className="pb-20"></div>
         </div>
       );
     }
@@ -478,4 +307,3 @@
   </script>
 </body>
 </html>
-
