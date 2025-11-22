@@ -13,6 +13,12 @@
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     }
+    [contenteditable][data-placeholder]:empty:before {
+      content: attr(data-placeholder);
+      color: #6b7280;
+      pointer-events: none;
+      opacity: 0.7;
+    }
   </style>
 </head>
 <body>
@@ -305,6 +311,49 @@
                   {/* Chat Messages Area */}
                   <div className="flex-1 bg-gray-50 overflow-y-auto">
                     {/* Empty chat area */}
+                  </div>
+
+                  {/* Chat Input */}
+                  <div className="bg-white border-t border-gray-200">
+                    <div className="w-full max-w-2xl mx-auto flex items-center p-2 gap-1">
+                      {/* Emoji Button */}
+                      <button className="p-2 flex-shrink-0 self-end rounded-full">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <g transform="rotate(-19, 12, 12)">
+                            <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"></path>
+                            <ellipse cx="15" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
+                            <ellipse cx="9" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
+                            <path d="M15 22H12C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12V15M15 22C18.866 22 22 18.866 22 15M15 22C15 20.1387 15 19.2081 15.2447 18.4549C15.7393 16.9327 16.9327 15.7393 18.4549 15.2447C19.2081 15 20.1387 15 22 15" stroke="#6b7280" strokeWidth="2"></path>
+                          </g>
+                        </svg>
+                      </button>
+
+                      {/* Input Field */}
+                      <div
+                        contentEditable
+                        className="flex-1 bg-transparent text-gray-900 outline-none px-3 py-2 min-h-[40px] max-h-[120px] overflow-y-auto whitespace-pre-wrap break-words"
+                        data-placeholder="Message..."
+                        suppressContentEditableWarning={true}
+                      />
+
+                      {/* Attach Button (Paperclip) */}
+                      <button className="p-2 flex-shrink-0 self-end rounded-full">
+                        <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                          <g transform="rotate(-42, 16, 16)">
+                            <path d="M13.17,29.9a4,4,0,0,1-2.83-1.17L4.69,23.07a4,4,0,0,1,0-5.66L18.83,3.27a4.1,4.1,0,0,1,5.66,0L27.31,6.1a4,4,0,0,1,0,5.66L16,23.07a4,4,0,0,1-5.66-5.66l9.2-9.19L21,9.64l-9.19,9.19a2,2,0,0,0,2.83,2.83L25.9,10.34a2,2,0,0,0,0-2.83L23.07,4.69a2,2,0,0,0-2.83,0L6.1,18.83a2,2,0,0,0,0,2.83l5.66,5.65a2,2,0,0,0,2.83,0l12-12L28,16.71l-12,12A4,4,0,0,1,13.17,29.9Z"></path>
+                          </g>
+                        </svg>
+                      </button>
+
+                      {/* Microphone Button */}
+                      <button className="p-2 flex-shrink-0 self-end hover:bg-gray-100 rounded-full transition-colors">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="8" y="2" width="8" height="13" rx="4"></rect>
+                          <path d="M20,10v1a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V10"></path>
+                          <line x1="12" y1="19" x2="12" y2="22"></line>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
