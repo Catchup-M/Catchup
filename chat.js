@@ -1,8 +1,8 @@
-// chat.js - FINAL, FULLY FIXED VERSION (New Timestamp Styles)
+// chat.js - FINAL, FULLY FIXED VERSION (Custom Timestamp Style for Multi-Line Only)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
-  const [layout, setLayout] = useState('flow'); // Defaulting to flow for simplicity
+  const [layout, setLayout] = useState('flow'); 
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const startX = useRef(0);
@@ -117,18 +117,19 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         onTouchEnd={handleTouchEnd}
       >
         {layout === 'single' ? (
-          // --- SINGLE LINE LAYOUT (For very short messages) ---
+          // --- SINGLE LINE LAYOUT (Uses default small font size 11px and translateY(3px)) ---
           <div className="flex items-baseline gap-2">
             <span ref={textRef} style={{ color: message.isOutgoing ? '#ffffff' : '#000000', fontSize: '16px', lineHeight: '1' }}>
               {message.text}
             </span>
+            {/* SINGLE LINE TIMESTAMP: Unaffected by new style */}
             <span ref={timeRef} className="flex items-center gap-1 flex-shrink-0" style={{ fontSize: '11px', lineHeight: '1', transform: 'translateY(3px)', color: message.isOutgoing ? '#dbeafe' : '#6b7280' }}>
               {message.time}
               {message.isOutgoing && <CheckmarkSVG />}
             </span>
           </div>
         ) : (
-          // --- FLOW LAYOUT (Dynamic, used for multi-line and longer single-line messages) ---
+          // --- FLOW LAYOUT (Dynamic, uses custom styles including new size/transform) ---
           <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
             
             <div 
@@ -138,24 +139,24 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                     lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // Adjusted margin-bottom to account for the new timestamp size/position
-                    marginBottom: '-19px', 
+                    marginBottom: '-16px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
               <span className="inline-block" style={{ width: '4px', height: '1px' }}></span> 
             </div>
             
+            {/* FLOW LAYOUT TIMESTAMP: Uses the new custom style */}
             <span 
               ref={timeRef} 
               className="flex items-center gap-1 flex-shrink-0 self-end ml-auto" 
               style={{ 
-                // *** NEW STYLES FROM USER INPUT APPLIED HERE ***
+                // *** NEW CUSTOM STYLES APPLIED ***
                 fontSize: '13px', 
                 lineHeight: '1', 
-                // Calculated translateY to compensate for font-size/line-height changes
-                transform: message.isOutgoing ? 'translateY(19px) translateX(-8px)' : 'translateY(19px)',
-                color: message.isOutgoing ? 'rgb(219, 234, 254)' : '#6b7280',
+                // Combined vertical fix (16px) and your new horizontal fix (-8px)
+                transform: message.isOutgoing ? 'translateY(16px) translateX(-8px)' : 'translateY(16px)',
+                color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 paddingTop: '4px' 
               }}>
               {message.time}
@@ -366,8 +367,8 @@ function ChatView({ selectedChat, onBack }) {
         <div 
           className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar"
           style={{ 
-            scrollbarWidth: 'none',     // Firefox
-            msOverflowStyle: 'none'     // IE and Edge
+            scrollbarWidth: 'none',     
+            msOverflowStyle: 'none'     
           }}
         >
 
