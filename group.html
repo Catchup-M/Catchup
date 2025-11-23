@@ -25,6 +25,7 @@
     function NewGroupUI() {
       const [groupName, setGroupName] = useState('');
       const [showEmoji, setShowEmoji] = useState(false);
+      const [isFocused, setIsFocused] = useState(false);
       const inputRef = useRef(null);
 
       const handleToggleEmoji = () => {
@@ -44,6 +45,18 @@
         }
       };
 
+      const handleInput = (e) => {
+        setGroupName(e.currentTarget.textContent);
+      };
+
+      const handleFocus = () => {
+        setIsFocused(true);
+      };
+
+      const handleBlur = () => {
+        setIsFocused(false);
+      };
+
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
           {/* Header */}
@@ -61,7 +74,7 @@
 
           {/* Group Photo and Name Section */}
           <div className="bg-white px-4 py-6 border-b border-gray-200">
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
               {/* Camera Icon Button */}
               <div className="w-16 h-16 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 432 384">
@@ -70,24 +83,32 @@
               </div>
               
               {/* Input Field */}
-              <div className="flex-1 relative">
+              <div className="flex-1 relative min-w-0 mt-4">
                 <div
                   ref={inputRef}
                   contentEditable="true"
                   onClick={handleInputClick}
-                  onInput={(e) => setGroupName(e.currentTarget.textContent)}
-                  data-placeholder="Enter group name"
-                  className="w-full pb-2 text-base text-gray-900 bg-transparent border-b-2 border-blue-400 focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+                  onInput={handleInput}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
+                  className="w-full pb-2 text-base text-gray-900 bg-transparent border-b-2 border-blue-400 focus:outline-none min-h-[1.5rem] max-h-[6rem] overflow-y-auto break-words"
+                  style={{ direction: 'ltr', wordWrap: 'break-word', overflowWrap: 'break-word' }}
                   suppressContentEditableWarning={true}
                 >
-                  {groupName}
                 </div>
+                {!groupName && !isFocused && (
+                  <div 
+                    className="absolute left-0 top-0 text-base text-gray-400 pointer-events-none"
+                  >
+                    Enter group name
+                  </div>
+                )}
               </div>
 
               {/* Emoji/Keyboard Toggle Button */}
               <button 
                 onClick={handleToggleEmoji}
-                className="text-gray-400 flex-shrink-0 hover:text-gray-600 transition-colors"
+                className="text-gray-400 flex-shrink-0 hover:text-gray-600 transition-colors self-end pb-2"
               >
                 {showEmoji ? (
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 432 384">
