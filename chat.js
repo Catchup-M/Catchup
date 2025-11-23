@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Precision Alignment Fix)
+// chat.js - FINAL, FULLY FIXED VERSION (Vertical Compression and Horizontal Alignment)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -129,17 +129,17 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           </div>
         ) : (
           // --- FLOW LAYOUT (Dynamic, used for multi-line and longer single-line messages) ---
-          <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word', paddingBottom: '3px' }}>
+          <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
             
             <div 
                 style={{ 
                     color: message.isOutgoing ? '#ffffff' : '#000000', 
                     fontSize: '16px', 
-                    // Tighter line height for better alignment
-                    lineHeight: '1.4', 
+                    lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // Removed negative margin
+                    // *** VERTICAL COMPRESSION CHANGE 1: Reduced margin to pull text block closer to the bottom ***
+                    marginBottom: '-8px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
@@ -152,10 +152,11 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               style={{ 
                 fontSize: '11px', 
                 lineHeight: '1', 
-                // Adjusted translateY to a smaller value to align with the new line-height
-                transform: 'translateY(11px)', 
+                // *** VERTICAL COMPRESSION CHANGE 2: Reduced translateY to pull timestamp up significantly ***
+                // Combines with the horizontal fix for outgoing messages.
+                transform: message.isOutgoing ? 'translateY(8px) translateX(-13px)' : 'translateY(8px)',
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                // Removed paddingTop as the translateY should handle the offset
+                paddingTop: '4px' 
               }}>
               {message.time}
               {message.isOutgoing && <CheckmarkSVG />}
