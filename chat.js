@@ -1,8 +1,8 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Horizontal and Vertical Alignment)
+// chat.js - FINAL, FULLY FIXED VERSION (Multi-Line Padding Fixed to Match Telegram)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
-  const [layout, setLayout] = useState('flow'); // Defaulting to flow for simplicity
+  const [layout, setLayout] = useState('single');
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const startX = useRef(0);
@@ -18,15 +18,20 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      const checkWidth = message.isOutgoing ? timeWidth + 20 : timeWidth; 
-      const totalWidth = textWidth + checkWidth + 24; 
-
-      const MAX_SHORT_SINGLE_LINE_WIDTH = 150; 
+      // Calculate total width needed for single line: Text + Time/Checkmark + Padding
+      const checkWidth = message.isOutgoing ? timeWidth + 20 : timeWidth;
       
-      if (totalWidth <= MAX_SHORT_SINGLE_LINE_WIDTH) {
-        setLayout('single');
+      // 24 = approximate padding/spacing needed for single line layout 
+      const totalWidth = textWidth + checkWidth + 24; 
+      
+      // Set MAX_SINGLE_LINE_WIDTH to be slightly less than max-w-xs (320px) 
+      // to avoid weird wrapping edge cases, but large enough for short messages.
+      const MAX_SINGLE_LINE_WIDTH = 290; 
+
+      if (totalWidth > MAX_SINGLE_LINE_WIDTH) {
+        setLayout('multi');
       } else {
-        setLayout('flow');
+        setLayout('single');
       }
     }
   }, [message.text]);
@@ -85,28 +90,13 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     }
   };
 
-  // Checkmark SVG Component (for cleaner rendering)
-  const CheckmarkSVG = () => (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      xmlns="http://www.w3.org/2000/svg" 
-      width="14" 
-      height="14"
-      style={{ color: message.isOutgoing ? '#dbeafe' : '#6b7280' }} 
-    >
-      <path d="M17.5821 6.95711C17.9726 6.56658 17.9726 5.93342 17.5821 5.54289C17.1916 5.15237 16.5584 5.15237 16.1679 5.54289L5.54545 16.1653L1.70711 12.327C1.31658 11.9365 0.683417 11.9365 0.292893 12.327C-0.0976311 12.7175 -0.097631 13.3507 0.292893 13.7412L4.83835 18.2866C5.22887 18.6772 5.86204 18.6772 6.25256 18.2866L17.5821 6.95711Z" fill="currentColor"></path>
-      <path d="M23.5821 6.95711C23.9726 6.56658 23.9726 5.93342 23.5821 5.54289C23.1915 5.15237 22.5584 5.15237 22.1678 5.54289L10.8383 16.8724C10.4478 17.263 10.4478 17.8961 10.8383 18.2866C11.2288 18.6772 11.862 18.6772 12.2525 18.2866L23.5821 6.95711Z" fill="currentColor"></path>
-    </svg>
-  );
-
   return (
     <div className={`flex items-end ${message.isOutgoing ? 'justify-end' : ''}`}>
       <div
         ref={bubbleRef}
         className="rounded-2xl px-4 py-2.5 max-w-xs"
         style={{
-          backgroundColor: message.isOutgoing ? '#3b82f6' : '#f5f5f5', 
+          backgroundColor: message.isOutgoing ? '#60a5fa' : '#f5f5f5',
           borderRadius: message.isOutgoing ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
           transform: `translateX(${swipeX}px)`,
           transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
@@ -117,52 +107,52 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         onTouchEnd={handleTouchEnd}
       >
         {layout === 'single' ? (
-          // --- SINGLE LINE LAYOUT (For very short messages) ---
           <div className="flex items-baseline gap-2">
             <span ref={textRef} style={{ color: message.isOutgoing ? '#ffffff' : '#000000', fontSize: '16px', lineHeight: '1' }}>
               {message.text}
             </span>
             <span ref={timeRef} className="flex items-center gap-1 flex-shrink-0" style={{ fontSize: '11px', lineHeight: '1', transform: 'translateY(3px)', color: message.isOutgoing ? '#dbeafe' : '#6b7280' }}>
               {message.time}
-              {message.isOutgoing && <CheckmarkSVG />}
+              {message.isOutgoing && (
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="14" height="14">
+                  <path d="M17.5821 6.95711C17.9726 6.56658 17.9726 5.93342 17.5821 5.54289C17.1916 5.15237 16.5584 5.15237 16.1679 5.54289L5.54545 16.1653L1.70711 12.327C1.31658 11.9365 0.683417 11.9365 0.292893 12.327C-0.0976311 12.7175 -0.097631 13.3507 0.292893 13.7412L4.83835 18.2866C5.22887 18.6772 5.86204 18.6772 6.25256 18.2866L17.5821 6.95711Z" fill="currentColor"></path>
+                  <path d="M23.5821 6.95711C23.9726 6.56658 23.9726 5.93342 23.5821 5.54289C23.1915 5.15237 22.5584 5.15237 22.1678 5.54289L10.8383 16.8724C10.4478 17.263 10.4478 17.8961 10.8383 18.2866C11.2288 18.6772 11.862 18.6772 12.2525 18.2866L23.5821 6.95711Z" fill="currentColor"></path>
+                </svg>
+              )}
             </span>
           </div>
         ) : (
-          // --- FLOW LAYOUT (Dynamic, used for multi-line and longer single-line messages) ---
-          <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
-            
+          <div>
+            {/* Removed the className="pr-5" so text fills up to the container's natural px-4 padding */}
             <div 
                 style={{ 
                     color: message.isOutgoing ? '#ffffff' : '#000000', 
                     fontSize: '16px', 
-                    lineHeight: '1.5',
-                    whiteSpace: 'pre-wrap', 
-                    paddingRight: '6px', 
-                    // *** CRITICAL CHANGE 1: Reduced margin-bottom to pull text closer to the timestamp ***
-                    // Adjusted from -14px to -16px to minimize the vertical gap.
-                    marginBottom: '-16px', 
+                    lineHeight: '1.5', 
+                    wordBreak: 'break-word', 
+                    paddingBottom: '4px' 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
-              <span className="inline-block" style={{ width: '4px', height: '1px' }}></span> 
             </div>
-            
-            <span 
-              ref={timeRef} 
-              className="flex items-center gap-1 flex-shrink-0 self-end ml-auto" 
-              style={{ 
-                fontSize: '11px', 
-                lineHeight: '1', 
-                // *** CRITICAL CHANGE 2: Adjusted translateY to pull the timestamp up further ***
-                // Adjusted from 14px to 16px for a tighter fit.
-                // Maintained the user-provided horizontal fix (translateX(-13px)).
-                transform: message.isOutgoing ? 'translateY(16px) translateX(-13px)' : 'translateY(16px)',
-                color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                paddingTop: '4px' 
-              }}>
-              {message.time}
-              {message.isOutgoing && <CheckmarkSVG />}
-            </span>
+            <div className="flex items-center justify-end gap-1">
+              <span ref={timeRef} style={{ fontSize: '11px', lineHeight: '1', color: message.isOutgoing ? '#dbeafe' : '#6b7280' }}>
+                {message.time}
+              </span>
+              {message.isOutgoing && (
+                <svg 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="14" 
+                  height="14"
+                  style={{ color: '#dbeafe' }} 
+                >
+                  <path d="M17.5821 6.95711C17.9726 6.56658 17.9726 5.93342 17.5821 5.54289C17.1916 5.15237 16.5584 5.15237 16.1679 5.54289L5.54545 16.1653L1.70711 12.327C1.31658 11.9365 0.683417 11.9365 0.292893 12.327C-0.0976311 12.7175 -0.097631 13.3507 0.292893 13.7412L4.83835 18.2866C5.22887 18.6772 5.86204 18.6772 6.25256 18.2866L17.5821 6.95711Z" fill="currentColor"></path>
+                  <path d="M23.5821 6.95711C23.9726 6.56658 23.9726 5.93342 23.5821 5.54289C23.1915 5.15237 22.5584 5.15237 22.1678 5.54289L10.8383 16.8724C10.4478 17.263 10.4478 17.8961 10.8383 18.2866C11.2288 18.6772 11.862 18.6772 12.2525 18.2866L23.5821 6.95711Z" fill="currentColor"></path>
+                </svg>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -175,8 +165,7 @@ function ChatView({ selectedChat, onBack }) {
   const [hasText, setHasText] = useState(false);
   const [messages, setMessages] = useState([
     { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
-    { id: 2, text: 'Hello', time: '07:05 AM', isOutgoing: true },
-    { id: 3, text: "How are you doing my dear and hope you're doing great", time: '11:45 AM', isOutgoing: true } 
+    { id: 2, text: 'Hello', time: '07:05 AM', isOutgoing: true }
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
@@ -238,6 +227,7 @@ function ChatView({ selectedChat, onBack }) {
 
   useEffect(() => {
     const handleResize = () => {
+      // If the input is active, ensure scroll is maintained when visual viewport resizes (keyboard action)
       if (document.activeElement === inputRef.current) {
         setTimeout(() => scrollToBottom('smooth'), 100);
       }
@@ -256,8 +246,10 @@ function ChatView({ selectedChat, onBack }) {
     setTimeout(() => scrollToBottom('smooth'), 50);
   };
 
+  // Ensure click outside doesn't dismiss the keyboard if the input is active.
   const handleClick = (e) => { 
     if (showEmojiPicker) {
+      // Check if the click occurred on the input itself
       if (e.target !== inputRef.current) {
          setShowEmojiPicker(false); 
       }
@@ -275,10 +267,13 @@ function ChatView({ selectedChat, onBack }) {
       isOutgoing: true
     };
 
+    // 1. CLEAR CONTENT DIRECTLY to maintain current focus state.
+    // The browser doesn't interpret this DOM manipulation as a focus loss.
     if (inputRef.current) {
       inputRef.current.textContent = '';
       inputRef.current.setAttribute('data-empty', 'true');
       
+      // Manually reset cursor/selection to ensure cursor blinks at the start
       const selection = window.getSelection();
       const range = document.createRange();
       if (inputRef.current.firstChild) {
@@ -291,10 +286,12 @@ function ChatView({ selectedChat, onBack }) {
       selection.addRange(range);
     }
     
+    // 2. Update React state (triggers re-render)
     setMessages([...messages, newMessage]);
     setReplyingTo(null);
     setHasText(false);
     
+    // 3. Scroll to bottom after re-render completes
     setTimeout(() => scrollToBottom('smooth'), 100);
   };
 
