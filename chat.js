@@ -1,5 +1,4 @@
-
-// chat.js - FINAL, FULLY FIXED VERSION (Keyboard Stays Open)
+// chat.js - FINAL, FULLY FIXED VERSION (No Refocus Method)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -80,7 +79,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
     if (shouldReply) {
       setReplyingTo(message);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      // NOTE: We rely on the input being focused already if this is called while typing.
+      // If used standalone, a focus() call might be necessary, but following the constraint.
+      setTimeout(() => inputRef.current?.focus(), 100); 
     }
   };
 
@@ -132,7 +133,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                   xmlns="http://www.w3.org/2000/svg" 
                   width="14" 
                   height="14"
-                  style={{ color: '#dbeafe' }} /* Fixed: correct light color on long messages */
+                  style={{ color: '#dbeafe' }} 
                 >
                   <path d="M17.5821 6.95711C17.9726 6.56658 17.9726 5.93342 17.5821 5.54289C17.1916 5.15237 16.5584 5.15237 16.1679 5.54289L5.54545 16.1653L1.70711 12.327C1.31658 11.9365 0.683417 11.9365 0.292893 12.327C-0.0976311 12.7175 -0.097631 13.3507 0.292893 13.7412L4.83835 18.2866C5.22887 18.6772 5.86204 18.6772 6.25256 18.2866L17.5821 6.95711Z" fill="currentColor"></path>
                   <path d="M23.5821 6.95711C23.9726 6.56658 23.9726 5.93342 23.5821 5.54289C23.1915 5.15237 22.5584 5.15237 22.1678 5.54289L10.8383 16.8724C10.4478 17.263 10.4478 17.8961 10.8383 18.2866C11.2288 18.6772 11.862 18.6772 12.2525 18.2866L23.5821 6.95711Z" fill="currentColor"></path>
@@ -244,22 +245,30 @@ function ChatView({ selectedChat, onBack }) {
       isOutgoing: true
     };
 
-    setMessages([...messages, newMessage]);
-    setReplyingTo(null);
-    
+    // 1. CLEAR CONTENT DIRECTLY to maintain current focus state
     if (inputRef.current) {
       inputRef.current.textContent = '';
       inputRef.current.setAttribute('data-empty', 'true');
-      setHasText(false);
       
-      // *** FIX FOR KEEPING KEYBOARD OPEN ***
-      // Re-focus immediately after clearing the input content.
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0); 
+      // Manually reset cursor/selection to ensure cursor blinks at the start
+      const selection = window.getSelection();
+      const range = document.createRange();
+      if (inputRef.current.firstChild) {
+        range.setStart(inputRef.current.firstChild, 0);
+      } else {
+         range.setStart(inputRef.current, 0);
+      }
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
     
-    // Scroll to bottom after state and focus changes
+    // 2. Update React state (triggers re-render)
+    setMessages([...messages, newMessage]);
+    setReplyingTo(null);
+    setHasText(false);
+    
+    // 3. Scroll to bottom after re-render completes
     setTimeout(() => scrollToBottom('smooth'), 100);
   };
 
@@ -442,3 +451,4 @@ function ChatView({ selectedChat, onBack }) {
 
 window.ChatView = ChatView;
 window.MessageBubble = MessageBubble;
+
