@@ -1,8 +1,8 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Dynamic Inline Time/Status Tuck-In - Vertical Alignment Fix)
+// chat.js - FINAL, FULLY FIXED VERSION (Precision Alignment Fix)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
-  const [layout, setLayout] = useState('flow'); // Defaulting to flow for simplicity
+  const [layout, setLayout] = useState('flow'); 
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const startX = useRef(0);
@@ -129,17 +129,17 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           </div>
         ) : (
           // --- FLOW LAYOUT (Dynamic, used for multi-line and longer single-line messages) ---
-          <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
+          <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word', paddingBottom: '3px' }}>
             
             <div 
                 style={{ 
                     color: message.isOutgoing ? '#ffffff' : '#000000', 
                     fontSize: '16px', 
-                    lineHeight: '1.5',
+                    // Tighter line height for better alignment
+                    lineHeight: '1.4', 
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // Refined marginBottom to help pull the time stamp up
-                    marginBottom: '-14px', 
+                    // Removed negative margin
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
@@ -152,11 +152,10 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               style={{ 
                 fontSize: '11px', 
                 lineHeight: '1', 
-                // *** FINAL CRITICAL CHANGE: Adjusted translateY from 17px/14px to 14px ***
-                // This moves the timestamp to the correct vertical position within the bubble.
-                transform: 'translateY(14px)', 
+                // Adjusted translateY to a smaller value to align with the new line-height
+                transform: 'translateY(11px)', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                paddingTop: '4px' 
+                // Removed paddingTop as the translateY should handle the offset
               }}>
               {message.time}
               {message.isOutgoing && <CheckmarkSVG />}
