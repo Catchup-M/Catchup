@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Addresses scrolling/scrollbar/sticky issues)
+// chat.js - FINAL, FULLY FIXED VERSION (Scrollbar Hidden)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -158,7 +158,7 @@ function ChatView({ selectedChat, onBack }) {
 
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null); // Now points to the outermost message div wrapper
+  const chatContainerRef = useRef(null); 
   const dateBadgeRef = useRef(null);
   const emojiPickerHeight = 300;
 
@@ -196,7 +196,6 @@ function ChatView({ selectedChat, onBack }) {
       }
 
       if (prevScrollHeight !== scrollHeight && scrolledFromBottom < 150) {
-        // Use requestAnimationFrame to ensure the scroll happens after layout change
         requestAnimationFrame(() => scrollToBottom('auto'));
       }
       prevScrollHeight = scrollHeight;
@@ -207,7 +206,7 @@ function ChatView({ selectedChat, onBack }) {
       scrollElement.removeEventListener('scroll', handleScroll);
       if (fadeTimeout) clearTimeout(fadeTimeout);
     };
-  }, []); // Dependencies are fine
+  }, []); 
 
   useEffect(() => { scrollToBottom('auto'); }, []);
 
@@ -316,12 +315,11 @@ function ChatView({ selectedChat, onBack }) {
         </button>
       </div>
 
-      {/* Messages Area - FIX: Flexbox stick-to-bottom pattern implemented */}
-      {/* chatContainerRef now points to the outer, flex-1 container */}
+      {/* Messages Area - Scrollbar hidden here */}
       <div ref={chatContainerRef} className="flex-1 px-4 bg-white flex flex-col" style={{ scrollBehavior: 'smooth', overflowX: 'hidden' }}>
         
-        {/* Scrollable Wrapper (New Element) */}
-        <div className="flex-1 overflow-y-auto flex flex-col scroll-content">
+        {/* Scrollable Wrapper with HIDE SCROLLBAR class */}
+        <div className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar">
 
           {/* Floating Date Badge (Sticky to the top of the scrollable content) */}
           <div className="sticky top-0 z-10 flex justify-center transition-opacity duration-200 py-1" style={{ opacity: showFloatingDate ? 1 : 0, pointerEvents: 'none' }}>
