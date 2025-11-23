@@ -138,7 +138,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                     lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // Critical vertical alignment fix: pull text closer to timestamp
+                    // *** CRITICAL CHANGE 1: Reduced margin-bottom to pull text closer to the timestamp ***
+                    // Adjusted from -14px to -16px to minimize the vertical gap.
                     marginBottom: '-16px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
@@ -152,6 +153,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               style={{ 
                 fontSize: '11px', 
                 lineHeight: '1', 
+                // *** CRITICAL CHANGE 2: Adjusted translateY to pull the timestamp up further ***
+                // Adjusted from 14px to 16px for a tighter fit.
+                // Maintained the user-provided horizontal fix (translateX(-13px)).
                 transform: message.isOutgoing ? 'translateY(16px) translateX(-13px)' : 'translateY(16px)',
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 paddingTop: '4px' 
@@ -332,7 +336,7 @@ function ChatView({ selectedChat, onBack }) {
   };
 
   return (
-   ssk    <div className="fixed inset-0 bg-white z-50 flex flex-col slide-in-right">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col slide-in-right">
       {/* Header */}
       <div className="flex items-center px-3 py-2 bg-white shadow-md">
         <button onClick={onBack} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
@@ -357,25 +361,26 @@ function ChatView({ selectedChat, onBack }) {
         </button>
       </div>
 
-      {/* Messages Area */}
+      {/* Messages Area - Scrollbar hidden here */}
       <div ref={chatContainerRef} className="flex-1 px-4 bg-white flex flex-col" style={{ scrollBehavior: 'smooth', overflowX: 'hidden' }}>
         
-        {/* Scrollable Wrapper - Hidden Scrollbar */}
+        {/* Scrollable Wrapper with HIDE SCROLLBAR class and vendor prefixes */}
         <div 
           className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar"
           style={{ 
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
+            scrollbarWidth: 'none',     // Firefox
+            msOverflowStyle: 'none'     // IE and Edge
           }}
         >
-          {/* Floating Date Badge */}
+
+          {/* Floating Date Badge (Sticky to the top of the scrollable content) */}
           <div className="sticky top-0 z-10 flex justify-center transition-opacity duration-200 py-1" style={{ opacity: showFloatingDate ? 1 : 0, pointerEvents: 'none' }}>
             <div className="bg-black bg-opacity-70 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg">
               <span className="text-white text-sm font-medium">Today</span>
             </div>
           </div>
           
-          {/* Main Messages */}
+          {/* Main Content: This div grows to fill the container height when content is short */}
           <div className="flex flex-col flex-grow justify-end">
             <div ref={dateBadgeRef} className="flex justify-center my-4">
               <div className="bg-black bg-opacity-60 backdrop-blur-sm px-3 py-0.5 rounded-full">
@@ -393,7 +398,7 @@ function ChatView({ selectedChat, onBack }) {
         </div>
       </div>
 
-      {/* Reply Preview Bar */}
+      {/* Reply Bar */}
       {replyingTo && (
         <div className="bg-white px-4 py-2 flex-shrink-0">
           <div className="rounded-lg flex items-center justify-between py-2.5 pl-3 pr-3" style={{ backgroundColor: '#f5f5f5', borderLeft: '3px solid #3b82f6' }}>
@@ -403,9 +408,12 @@ function ChatView({ selectedChat, onBack }) {
               </div>
               <div className="text-sm text-gray-600 truncate">{replyingTo.text}</div>
             </div>
+            {/* onMouseDown prevents focus theft */}
             <button 
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setReplyingTo(null)} 
+              onClick={() => {
+                setReplyingTo(null);
+              }} 
               className="ml-3 p-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
@@ -421,13 +429,15 @@ function ChatView({ selectedChat, onBack }) {
       <div className={`bg-white flex-shrink-0 ${!replyingTo ? 'border-t border-gray-200' : ''}`}>
         <div className="w-full max-w-2xl mx-auto flex items-center p-2 gap-1">
           
-          {/* Emoji / Keyboard Toggle */}
+          {/* Dynamic Emoji/Keyboard Button */}
           <button onClick={toggleEmojiPicker} className="p-2 flex-shrink-0 self-end">
             {showEmojiPicker ? (
+              // KEYBOARD ICON (when picker is OPEN)
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 432 384">
                 <path fill="#6b7280" d="M384 43q18 0 30.5 12.5T427 85v214q0 17-12.5 29.5T384 341H43q-18 0-30.5-12.5T0 299V85q0-17 12.5-29.5T43 43h341zm-192 64v42h43v-42h-43zm0 64v42h43v-42h-43zm-64-64v42h43v-42h-43zm0 64v42h43v-42h-43zm-21 42v-42H64v42h43zm0-64v-42H64v42h43zm192 150v-43H128v43h171zm0-86v-42h-43v42h43zm0-64v-42h-43v42h43zm64 64v-42h-43v42h43zm0-64v-42h-43v42h43z"/>
               </svg>
             ) : (
+              // EMOJI ICON (when picker is CLOSED)
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g transform="rotate(-19, 12, 12)">
                   <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"></path>
@@ -439,7 +449,7 @@ function ChatView({ selectedChat, onBack }) {
             )}
           </button>
 
-          {/* Message Input */}
+          {/* Input Field - Occupies remaining space */}
           <div
             ref={inputRef}
             contentEditable
@@ -454,7 +464,7 @@ function ChatView({ selectedChat, onBack }) {
             suppressContentEditableWarning={true}
           />
 
-          {/* Media Buttons (Hidden when typing) */}
+          {/* Wrapper for Attach, Camera, and Mic buttons */}
           <div 
             className="flex items-end gap-1 transition-all duration-200 overflow-hidden" 
             style={{
@@ -463,7 +473,12 @@ function ChatView({ selectedChat, onBack }) {
               pointerEvents: hasText ? 'none' : 'auto',
               marginRight: hasText ? '0' : '-4px'
             }}>
-            <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0">
+
+            {/* Attach Button (Pin) */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} 
+              className="p-2 flex-shrink-0"
+              >
               <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="rotate(-42, 16, 16)">
                   <path d="M13.17,29.9a4,4,0,0,1-2.83-1.17L4.69,23.07a4,4,0,0,1,0-5.66L18.83,3.27a4.1,4.1,0,0,1,5.66,0L27.31,6.1a4,4,0,0,1,0,5.66L16,23.07a4,4,0,0,1-5.66-5.66l9.2-9.19L21,9.64l-9.19,9.19a2,2,0,0,0,2.83,2.83L25.9,10.34a2,2,0,0,0,0-2.83L23.07,4.69a2,2,0,0,0-2.83,0L6.1,18.83a2,2,0,0,0,0,2.83l5.66,5.65a2,2,0,0,0,2.83,0l12-12L28,16.71l-12,12A4,4,0,0,1,13.17,29.9Z"></path>
@@ -471,14 +486,22 @@ function ChatView({ selectedChat, onBack }) {
               </svg>
             </button>
 
-            <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0">
+            {/* Camera Button */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} 
+              className="p-2 flex-shrink-0" 
+              >
               <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
                 <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle> 
               </svg>
             </button>
 
-            <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0 hover:bg-gray-100 rounded-full">
+            {/* Microphone Button (Voice) */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} 
+              className="p-2 flex-shrink-0 hover:bg-gray-100 rounded-full" 
+              >
               <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="2" width="8" height="13" rx="4"></rect>
                 <path d="M20,10v1a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V10"></path>
@@ -487,7 +510,7 @@ function ChatView({ selectedChat, onBack }) {
             </button>
           </div>
 
-          {/* Send Button */}
+          {/* Send Button - Fixed to disappear cleanly without translation */}
           <button 
             onClick={handleSend} 
             className="p-2 flex-shrink-0 self-end transition-all duration-200" 
@@ -504,7 +527,7 @@ function ChatView({ selectedChat, onBack }) {
         </div>
       </div>
 
-      {/* Emoji Picker */}
+      {/* Empty Emoji Picker */}
       <div className="bg-gray-100 flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out" style={{ height: showEmojiPicker ? emojiPickerHeight : 0 }}>
         <div className="w-full max-w-2xl mx-auto h-full p-4">
           <div className="grid grid-cols-8 gap-2"></div>
@@ -514,6 +537,6 @@ function ChatView({ selectedChat, onBack }) {
   );
 }
 
-// Export for global use (e.g., in CodePen or simple demos)
 window.ChatView = ChatView;
 window.MessageBubble = MessageBubble;
+
