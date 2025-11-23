@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Input Field Width Fixed)
+// chat.js - FINAL, FULLY FIXED VERSION (Multi-Line Padding Fixed to Match Telegram)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -17,10 +17,18 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     if (textRef.current && timeRef.current) {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
+      
+      // Calculate total width needed for single line: Text + Time/Checkmark + Padding
       const checkWidth = message.isOutgoing ? timeWidth + 20 : timeWidth;
-      const totalWidth = textWidth + checkWidth + 24;
+      
+      // 24 = approximate padding/spacing needed for single line layout 
+      const totalWidth = textWidth + checkWidth + 24; 
+      
+      // Set MAX_SINGLE_LINE_WIDTH to be slightly less than max-w-xs (320px) 
+      // to avoid weird wrapping edge cases, but large enough for short messages.
+      const MAX_SINGLE_LINE_WIDTH = 290; 
 
-      if (totalWidth > 256) {
+      if (totalWidth > MAX_SINGLE_LINE_WIDTH) {
         setLayout('multi');
       } else {
         setLayout('single');
@@ -115,7 +123,15 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           </div>
         ) : (
           <div>
-            <div style={{ color: message.isOutgoing ? '#ffffff' : '#000000', fontSize: '16px', lineHeight: '1.5', wordBreak: 'break-word', paddingBottom: '4px' }}>
+            {/* Removed the className="pr-5" so text fills up to the container's natural px-4 padding */}
+            <div 
+                style={{ 
+                    color: message.isOutgoing ? '#ffffff' : '#000000', 
+                    fontSize: '16px', 
+                    lineHeight: '1.5', 
+                    wordBreak: 'break-word', 
+                    paddingBottom: '4px' 
+                }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
             </div>
@@ -445,22 +461,20 @@ function ChatView({ selectedChat, onBack }) {
             suppressContentEditableWarning={true}
           />
 
-          {/* NEW: Wrapper for Attach, Camera, and Mic buttons */}
+          {/* Wrapper for Attach, Camera, and Mic buttons */}
           <div 
             className="flex items-end gap-1 transition-all duration-200 overflow-hidden" 
             style={{
               width: hasText ? '0px' : 'auto',
               opacity: hasText ? 0 : 1, 
               pointerEvents: hasText ? 'none' : 'auto',
-              // Use negative margin to compensate for 'gap-1' when visible
               marginRight: hasText ? '0' : '-4px'
             }}>
 
             {/* Attach Button (Pin) */}
             <button 
-              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              onMouseDown={(e) => e.preventDefault()} 
               className="p-2 flex-shrink-0"
-              // Removed redundant inline styles
               >
               <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="rotate(-42, 16, 16)">
@@ -471,9 +485,8 @@ function ChatView({ selectedChat, onBack }) {
 
             {/* Camera Button */}
             <button 
-              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              onMouseDown={(e) => e.preventDefault()} 
               className="p-2 flex-shrink-0" 
-              // Removed redundant inline styles
               >
               <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
@@ -483,9 +496,8 @@ function ChatView({ selectedChat, onBack }) {
 
             {/* Microphone Button (Voice) */}
             <button 
-              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              onMouseDown={(e) => e.preventDefault()} 
               className="p-2 flex-shrink-0 hover:bg-gray-100 rounded-full" 
-              // Removed redundant inline styles
               >
               <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="2" width="8" height="13" rx="4"></rect>
