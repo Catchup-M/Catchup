@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (No Refocus Method)
+// chat.js - FINAL, FULLY FIXED VERSION (Dynamic Icon)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -79,8 +79,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
     if (shouldReply) {
       setReplyingTo(message);
-      // NOTE: We rely on the input being focused already if this is called while typing.
-      // If used standalone, a focus() call might be necessary, but following the constraint.
       setTimeout(() => inputRef.current?.focus(), 100); 
     }
   };
@@ -306,6 +304,11 @@ function ChatView({ selectedChat, onBack }) {
         if (scrollElement) scrollElement.scrollTop = scrollElement.scrollHeight - scrollElement.clientHeight + emojiPickerHeight;
       }, 350);
     }
+    // If the picker is closing, we want to try and bring up the keyboard
+    if (!willOpen) {
+        // Attempt to bring the keyboard back up by focusing the input
+        setTimeout(() => inputRef.current?.focus(), 100);
+    }
   };
 
   return (
@@ -388,16 +391,25 @@ function ChatView({ selectedChat, onBack }) {
       {/* Input Bar */}
       <div className={`bg-white flex-shrink-0 ${!replyingTo ? 'border-t border-gray-200' : ''}`}>
         <div className="w-full max-w-2xl mx-auto flex items-center p-2 gap-1">
-          {/* All input bar buttons remain unchanged */}
+          
+          {/* Dynamic Emoji/Keyboard Button */}
           <button onClick={toggleEmojiPicker} className="p-2 flex-shrink-0 self-end">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g transform="rotate(-19, 12, 12)">
-                <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"></path>
-                <ellipse cx="15" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
-                <ellipse cx="9" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
-                <path d="M15 22H12C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.9282 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12V15M15 22C18.866 22 22 18.866 22 15M15 22C15 20.1387 15 19.2081 15.2447 18.4549C15.7393 16.9327 16.9327 15.7393 18.4549 15.2447C19.2081 15 20.1387 15 22 15" stroke="#6b7280" strokeWidth="2"></path>
-              </g>
-            </svg>
+            {showEmojiPicker ? (
+              // KEYBOARD ICON (when picker is OPEN)
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 432 384">
+                <path fill="#6b7280" d="M384 43q18 0 30.5 12.5T427 85v214q0 17-12.5 29.5T384 341H43q-18 0-30.5-12.5T0 299V85q0-17 12.5-29.5T43 43h341zm-192 64v42h43v-42h-43zm0 64v42h43v-42h-43zm-64-64v42h43v-42h-43zm0 64v42h43v-42h-43zm-21 42v-42H64v42h43zm0-64v-42H64v42h43zm192 150v-43H128v43h171zm0-86v-42h-43v42h43zm0-64v-42h-43v42h43zm64 64v-42h-43v42h43zm0-64v-42h-43v42h43z"/>
+              </svg>
+            ) : (
+              // EMOJI ICON (when picker is CLOSED)
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(-19, 12, 12)">
+                  <path d="M9 16C9.85038 16.6303 10.8846 17 12 17C13.1154 17 14.1496 16.6303 15 16" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"></path>
+                  <ellipse cx="15" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
+                  <ellipse cx="9" cy="10.5" rx="1" ry="1.5" fill="#6b7280"></ellipse>
+                  <path d="M15 22H12C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.9282 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12V15M15 22C18.866 22 22 18.866 22 15M15 22C15 20.1387 15 19.2081 15.2447 18.4549C15.7393 16.9327 16.9327 15.7393 18.4549 15.2447C19.2081 15 20.1387 15 22 15" stroke="#6b7280" strokeWidth="2"></path>
+                </g>
+              </svg>
+            )}
           </button>
 
           <div
