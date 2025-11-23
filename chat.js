@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Dynamic Inline Time/Status Tuck-In)
+// chat.js - FINAL, FULLY FIXED VERSION (Dynamic Inline Time/Status Tuck-In - Vertical Alignment Fix)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -18,17 +18,14 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      // Calculate total width needed for the single line layout
       const checkWidth = message.isOutgoing ? timeWidth + 20 : timeWidth; 
       const totalWidth = textWidth + checkWidth + 24; 
 
-      // If the message is very short (e.g., "Hi"), use the 'single' layout for perfect baseline alignment.
       const MAX_SHORT_SINGLE_LINE_WIDTH = 150; 
       
       if (totalWidth <= MAX_SHORT_SINGLE_LINE_WIDTH) {
         setLayout('single');
       } else {
-        // Use 'flow' for all other messages (which includes your multi-line example).
         setLayout('flow');
       }
     }
@@ -96,7 +93,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       xmlns="http://www.w3.org/2000/svg" 
       width="14" 
       height="14"
-      // Use the lighter blue for the checkmarks on the outgoing blue bubble
       style={{ color: message.isOutgoing ? '#dbeafe' : '#6b7280' }} 
     >
       <path d="M17.5821 6.95711C17.9726 6.56658 17.9726 5.93342 17.5821 5.54289C17.1916 5.15237 16.5584 5.15237 16.1679 5.54289L5.54545 16.1653L1.70711 12.327C1.31658 11.9365 0.683417 11.9365 0.292893 12.327C-0.0976311 12.7175 -0.097631 13.3507 0.292893 13.7412L4.83835 18.2866C5.22887 18.6772 5.86204 18.6772 6.25256 18.2866L17.5821 6.95711Z" fill="currentColor"></path>
@@ -110,7 +106,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         ref={bubbleRef}
         className="rounded-2xl px-4 py-2.5 max-w-xs"
         style={{
-          // Use the correct blue color
           backgroundColor: message.isOutgoing ? '#3b82f6' : '#f5f5f5', 
           borderRadius: message.isOutgoing ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
           transform: `translateX(${swipeX}px)`,
@@ -136,41 +131,32 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           // --- FLOW LAYOUT (Dynamic, used for multi-line and longer single-line messages) ---
           <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
             
-            {/* The Text content wrapper. It expands to fit the text content. */}
             <div 
-                // Removed all aggressive margins/grow props that caused early breaks.
-                // We rely on the browser to wrap the text naturally up to the available width.
                 style={{ 
                     color: message.isOutgoing ? '#ffffff' : '#000000', 
                     fontSize: '16px', 
                     lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
-                    // Add small right padding to account for the space needed by the time stamp
-                    // on the last line, ensuring the last word doesn't collide with the time stamp.
                     paddingRight: '6px', 
-                    // Negative margin pulls the time stamp up closer to the last line of text 
-                    // when the text forces it onto a new line.
-                    marginBottom: '-16px', 
+                    // Refined marginBottom to help pull the time stamp up
+                    marginBottom: '-14px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
-              {/* This span acts as an invisible cushion to prevent the time stamp 
-                  from wrapping too tightly with the last word. */}
               <span className="inline-block" style={{ width: '4px', height: '1px' }}></span> 
             </div>
             
-            {/* Time/Status stamp. flex-shrink-0 prevents it from being squeezed. 
-                self-end ensures it aligns at the bottom of the container. */}
             <span 
               ref={timeRef} 
-              className="flex items-center gap-1 flex-shrink-0 self-end ml-auto" // ml-auto pushes it to the right
+              className="flex items-center gap-1 flex-shrink-0 self-end ml-auto" 
               style={{ 
                 fontSize: '11px', 
                 lineHeight: '1', 
-                // Adjust vertical position to align with the text's baseline 
-                transform: 'translateY(17px)', 
+                // *** FINAL CRITICAL CHANGE: Adjusted translateY from 17px/14px to 14px ***
+                // This moves the timestamp to the correct vertical position within the bubble.
+                transform: 'translateY(14px)', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                paddingTop: '4px' // Add a little space above the time stamp if it wraps
+                paddingTop: '4px' 
               }}>
               {message.time}
               {message.isOutgoing && <CheckmarkSVG />}
@@ -188,7 +174,6 @@ function ChatView({ selectedChat, onBack }) {
   const [messages, setMessages] = useState([
     { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
     { id: 2, text: 'Hello', time: '07:05 AM', isOutgoing: true },
-    // ADD YOUR LONG MESSAGE FOR TESTING THE FLOW LAYOUT
     { id: 3, text: "How are you doing my dear and hope you're doing great", time: '11:45 AM', isOutgoing: true } 
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
@@ -251,7 +236,6 @@ function ChatView({ selectedChat, onBack }) {
 
   useEffect(() => {
     const handleResize = () => {
-      // If the input is active, ensure scroll is maintained when visual viewport resizes (keyboard action)
       if (document.activeElement === inputRef.current) {
         setTimeout(() => scrollToBottom('smooth'), 100);
       }
