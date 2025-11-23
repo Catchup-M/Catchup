@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Single-line perfect + Your exact multi-line style)
+// chat.js - FINAL PERFECT VERSION (November 2025) - Telegram-Exact Alignment
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -14,24 +14,22 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const timeRef = useRef(null);
 
   useEffect(() => {
-    if (textRef.current && timeRef.current) {
-      const textWidth = textRef.current.offsetWidth;
-      const timeWidth = timeRef.current.offsetWidth;
+    if (!textRef.current || !timeRef.current) return;
 
-      // Fixed: More accurate width calculation + higher threshold
-      const extraSpace = message.isOutgoing ? 34 : 12; // checkmark + gap + padding
-      const totalWidth = textWidth + timeWidth + extraSpace;
+    const textWidth = textRef.current.offsetWidth;
+    const timeWidth = timeRef.current.offsetWidth;
 
-      // "Hello" + time + checkmark now safely fits
-      const MAX_SHORT_SINGLE_LINE_WIDTH = 210;
+    // EXACT Telegram-style threshold
+    const bubbleMaxWidth = 280; // max-w-xs ≈ 280px
+    const extraSpace = message.isOutgoing ? 42 : 20; // checkmark + gaps + padding
+    const totalNeeded = textWidth + timeWidth + extraSpace;
 
-      if (totalWidth <= MAX_SHORT_SINGLE_LINE_WIDTH) {
-        setLayout('single');
-      } else {
-        setLayout('flow');
-      }
+    if (totalNeeded <= bubbleMaxWidth) {
+      setLayout('single');
+    } else {
+      setLayout('flow');
     }
-  }, [message.text]);
+  }, [message.text, message.isOutgoing]);
 
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX;
@@ -97,7 +95,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         onTouchEnd={handleTouchEnd}
       >
         {layout === 'single' ? (
-          // SINGLE LINE - Perfect "Hello" alignment (original style)
+          // PERFECT SINGLE-LINE (used by "How are you doing today dear hope")
           <div className="flex items-baseline gap-2">
             <span ref={textRef} style={{ color: message.isOutgoing ? '#ffffff' : '#000000', fontSize: '16px', lineHeight: '1' }}>
               {message.text}
@@ -109,7 +107,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
             </span>
           </div>
         ) : (
-          // FLOW LAYOUT - Only long messages → your exact new style
+          // FLOW LAYOUT – only real multi-line → your custom style
           <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
             <div style={{
               color: message.isOutgoing ? '#ffffff' : '#000000',
@@ -149,7 +147,8 @@ function ChatView({ selectedChat, onBack }) {
   const [messages, setMessages] = useState([
     { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
     { id: 2, text: 'Hello', time: '07:05 AM', isOutgoing: true },
-    { id: 3, text: "How are you doing my dear and hope you're doing great", time: '11:45 AM', isOutgoing: true } 
+    { id: 3, text: "How are you doing today dear hope", time: '11:45 AM', isOutgoing: true },
+    { id: 4, text: "This is a very long message that will definitely wrap to multiple lines and use the flow layout", time: '11:50 AM', isOutgoing: true }
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
@@ -157,7 +156,7 @@ function ChatView({ selectedChat, onBack }) {
 
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null); 
+  const chatContainerRef = useRef(null);
   const dateBadgeRef = useRef(null);
   const emojiPickerHeight = 300;
 
@@ -166,6 +165,8 @@ function ChatView({ selectedChat, onBack }) {
   const scrollToBottom = (behavior = 'smooth') => {
     messagesEndRef.current?.scrollIntoView({ behavior });
   };
+
+  useEffect(() => { scrollToBottom('auto'); }, []);
 
   useEffect(() => {
     const scrollElement = getScrollElement();
@@ -177,21 +178,15 @@ function ChatView({ selectedChat, onBack }) {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = scrollElement;
       const scrolledFromBottom = scrollHeight - scrollTop - clientHeight;
-
       setHasScrolledUp(scrolledFromBottom > 100);
 
       if (dateBadgeRef.current) {
         const badgeRect = dateBadgeRef.current.getBoundingClientRect();
         const containerRect = scrollElement.getBoundingClientRect();
         const shouldShow = badgeRect.top < containerRect.top + 60;
-        
         setShowFloatingDate(shouldShow);
-        
         if (fadeTimeout) clearTimeout(fadeTimeout);
-        
-        if (shouldShow) {
-          fadeTimeout = setTimeout(() => setShowFloatingDate(false), 2000);
-        }
+        if (shouldShow) fadeTimeout = setTimeout(() => setShowFloatingDate(false), 2000);
       }
 
       if (prevScrollHeight !== scrollHeight && scrolledFromBottom < 150) {
@@ -205,9 +200,7 @@ function ChatView({ selectedChat, onBack }) {
       scrollElement.removeEventListener('scroll', handleScroll);
       if (fadeTimeout) clearTimeout(fadeTimeout);
     };
-  }, []); 
-
-  useEffect(() => { scrollToBottom('auto'); }, []);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -229,11 +222,9 @@ function ChatView({ selectedChat, onBack }) {
     setTimeout(() => scrollToBottom('smooth'), 50);
   };
 
-  const handleClick = (e) => { 
-    if (showEmojiPicker) {
-      if (e.target !== inputRef.current) {
-         setShowEmojiPicker(false); 
-      }
+  const handleClick = (e) => {
+    if (showEmojiPicker && e.target !== inputRef.current) {
+      setShowEmojiPicker(false);
     }
   };
 
@@ -251,23 +242,17 @@ function ChatView({ selectedChat, onBack }) {
     if (inputRef.current) {
       inputRef.current.textContent = '';
       inputRef.current.setAttribute('data-empty', 'true');
-      
       const selection = window.getSelection();
       const range = document.createRange();
-      if (inputRef.current.firstChild) {
-        range.setStart(inputRef.current.firstChild, 0);
-      } else {
-         range.setStart(inputRef.current, 0);
-      }
+      range.setStart(inputRef.current, 0);
       range.collapse(true);
       selection.removeAllRanges();
       selection.addRange(range);
     }
-    
+
     setMessages([...messages, newMessage]);
     setReplyingTo(null);
     setHasText(false);
-    
     setTimeout(() => scrollToBottom('smooth'), 100);
   };
 
@@ -299,7 +284,6 @@ function ChatView({ selectedChat, onBack }) {
     e.stopPropagation();
     const willOpen = !showEmojiPicker;
     setShowEmojiPicker(willOpen);
-    
     if (willOpen) {
       setTimeout(() => {
         const scrollElement = getScrollElement();
@@ -371,12 +355,8 @@ function ChatView({ selectedChat, onBack }) {
               </div>
               <div className="text-sm text-gray-600 truncate">{replyingTo.text}</div>
             </div>
-            <button 
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setReplyingTo(null)} 
-              className="ml-3 p-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLongitude="round" className="text-gray-600">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={() => setReplyingTo(null)} className="ml-3 p-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -388,7 +368,6 @@ function ChatView({ selectedChat, onBack }) {
       {/* Input Bar */}
       <div className={`bg-white flex-shrink-0 ${!replyingTo ? 'border-t border-gray-200' : ''}`}>
         <div className="w-full max-w-2xl mx-auto flex items-center p-2 gap-1">
-          
           <button onClick={toggleEmojiPicker} className="p-2 flex-shrink-0 self-end">
             {showEmojiPicker ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 432 384">
@@ -421,12 +400,7 @@ function ChatView({ selectedChat, onBack }) {
           />
 
           <div className="flex items-end gap-1 transition-all duration-200 overflow-hidden" 
-            style={{
-              width: hasText ? '0px' : 'auto',
-              opacity: hasText ? 0 : 1, 
-              pointerEvents: hasText ? 'none' : 'auto',
-              marginRight: hasText ? '0' : '-4px'
-            }}>
+            style={{ width: hasText ? '0px' : 'auto', opacity: hasText ? 0 : 1, pointerEvents: hasText ? 'none' : 'auto', marginRight: hasText ? '0' : '-4px' }}>
             <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0">
               <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="rotate(-42, 16, 16)">
@@ -434,14 +408,12 @@ function ChatView({ selectedChat, onBack }) {
                 </g>
               </svg>
             </button>
-
             <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0">
               <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
-                <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle> 
+                <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path>
+                <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle>
               </svg>
             </button>
-
             <button onMouseDown={(e) => e.preventDefault()} className="p-2 flex-shrink-0 hover:bg-gray-100 rounded-full">
               <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <rect x="8" y="2" width="8" height="13" rx="4"></rect>
@@ -451,15 +423,8 @@ function ChatView({ selectedChat, onBack }) {
             </button>
           </div>
 
-          <button 
-            onClick={handleSend} 
-            className="p-2 flex-shrink-0 self-end transition-all duration-200" 
-            style={{ 
-              opacity: hasText ? 1 : 0, 
-              pointerEvents: hasText ? 'auto' : 'none', 
-              width: hasText ? 'auto' : 0, 
-              padding: hasText ? '0.5rem' : '0' 
-            }}>
+          <button onClick={handleSend} className="p-2 flex-shrink-0 self-end transition-all duration-200"
+            style={{ opacity: hasText ? 1 : 0, pointerEvents: hasText ? 'auto' : 'none', width: hasText ? 'auto' : 0, padding: hasText ? '0.5rem' : '0' }}>
             <svg viewBox="0 -0.5 21 21" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
               <path d="M2.61258 9L0.05132 1.31623C-0.22718 0.48074 0.63218 -0.28074 1.42809 0.09626L20.4281 9.0963C21.1906 9.4575 21.1906 10.5425 20.4281 10.9037L1.42809 19.9037C0.63218 20.2807 -0.22718 19.5193 0.05132 18.6838L2.61258 11H8.9873C9.5396 11 9.9873 10.5523 9.9873 10C9.9873 9.4477 9.5396 9 8.9873 9H2.61258z" fill="#3b82f6" fillRule="evenodd" clipRule="evenodd" />
             </svg>
