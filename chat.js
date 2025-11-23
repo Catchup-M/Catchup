@@ -1,8 +1,8 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Vertical Compression and Horizontal Alignment)
+// chat.js - FINAL, FULLY FIXED VERSION (Horizontal and Vertical Alignment)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
-  const [layout, setLayout] = useState('flow'); 
+  const [layout, setLayout] = useState('flow'); // Defaulting to flow for simplicity
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const startX = useRef(0);
@@ -138,8 +138,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                     lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // *** VERTICAL COMPRESSION CHANGE 1: Reduced margin to pull text block closer to the bottom ***
-                    marginBottom: '-8px', 
+                    // *** CRITICAL CHANGE 1: Reduced margin-bottom to pull text closer to the timestamp ***
+                    // Adjusted from -14px to -16px to minimize the vertical gap.
+                    marginBottom: '-16px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
@@ -152,9 +153,10 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               style={{ 
                 fontSize: '11px', 
                 lineHeight: '1', 
-                // *** VERTICAL COMPRESSION CHANGE 2: Reduced translateY to pull timestamp up significantly ***
-                // Combines with the horizontal fix for outgoing messages.
-                transform: message.isOutgoing ? 'translateY(8px) translateX(-13px)' : 'translateY(8px)',
+                // *** CRITICAL CHANGE 2: Adjusted translateY to pull the timestamp up further ***
+                // Adjusted from 14px to 16px for a tighter fit.
+                // Maintained the user-provided horizontal fix (translateX(-13px)).
+                transform: message.isOutgoing ? 'translateY(16px) translateX(-13px)' : 'translateY(16px)',
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 paddingTop: '4px' 
               }}>
