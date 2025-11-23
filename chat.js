@@ -1,4 +1,4 @@
-// chat.js - FINAL TELEGRAM-PERFECT VERSION (13px single-line + perfect fit)
+// chat.js - FINAL PERFECT VERSION (Telegram-Exact Fit + Your Custom Multi-line Style)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -19,9 +19,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     const textWidth = textRef.current.offsetWidth;
     const timeWidth = timeRef.current.offsetWidth;
 
-    // Perfect threshold for 13px text + timestamp + checkmark
+    // Perfect threshold for 15px text + time + checkmark
     const bubbleMaxWidth = 280;
-    const extraSpace = message.isOutgoing ? 48 : 24; // checkmark + gaps
+    const extraSpace = message.isOutgoing ? 44 : 22; // checkmark + gaps
     const totalNeeded = textWidth + timeWidth + extraSpace;
 
     if (totalNeeded <= bubbleMaxWidth) {
@@ -95,28 +95,23 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         onTouchEnd={handleTouchEnd}
       >
         {layout === 'single' ? (
-          // SINGLE LINE — 13px text, perfect fit like Telegram
+          // PERFECT SINGLE-LINE – 15px text, fits everything beautifully
           <div className="flex items-baseline gap-2">
             <span ref={textRef} style={{ 
               color: message.isOutgoing ? '#ffffff' : '#000000', 
-              fontSize: '13px',     // ← Reduced from 16px → 13px
-              lineHeight: '1.2'
+              fontSize: '15px',      // Reduced from 16px → perfect fit
+              lineHeight: '1.2'      // Slightly tighter for better look
             }}>
               {message.text}
             </span>
             <span ref={timeRef} className="flex items-center gap-1 flex-shrink-0"
-                  style={{ 
-                    fontSize: '11px', 
-                    lineHeight: '1', 
-                    transform: 'translateY(2px)', 
-                    color: message.isOutgoing ? '#dbeafe' : '#6b7280' 
-                  }}>
+                  style={{ fontSize: '11px', lineHeight: '1', transform: 'translateY(2px)', color: message.isOutgoing ? '#dbeafe' : '#6b7280' }}>
               {message.time}
               {message.isOutgoing && <CheckmarkSVG />}
             </span>
           </div>
         ) : (
-          // FLOW LAYOUT — your custom style for multi-line
+          // FLOW LAYOUT – Your custom style for multi-line only
           <div className="flex flex-wrap items-end" style={{ wordBreak: 'break-word' }}>
             <div style={{
               color: message.isOutgoing ? '#ffffff' : '#000000',
@@ -150,7 +145,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   );
 };
 
-// YOUR FULL ORIGINAL ChatView — 100% unchanged
 function ChatView({ selectedChat, onBack }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [hasText, setHasText] = useState(false);
@@ -158,8 +152,8 @@ function ChatView({ selectedChat, onBack }) {
     { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
     { id: 2, text: 'Hello', time: '07:05 AM', isOutgoing: true },
     { id: 3, text: "How are you doing today", time: '11:45 AM', isOutgoing: true },
-    { id: 4, text: "I'm doing great thanks! How about you?", time: '11:46 AM', isOutgoing: false },
-    { id: 5, text: "This message is very long and will wrap to multiple lines for sure", time: '11:47 AM', isOutgoing: true }
+    { id: 4, text: "I'm great thanks! How about you?", time: '11:46 AM', isOutgoing: true },
+    { id: 5, text: "This message is very long and will wrap to multiple lines so it uses the flow layout with your custom timestamp", time: '11:50 AM', isOutgoing: true }
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
