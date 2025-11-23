@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Horizontal and Vertical Alignment)
+// chat.js - FINAL, FULLY FIXED VERSION (New Timestamp Styles)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -138,9 +138,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                     lineHeight: '1.5',
                     whiteSpace: 'pre-wrap', 
                     paddingRight: '6px', 
-                    // *** CRITICAL CHANGE 1: Reduced margin-bottom to pull text closer to the timestamp ***
-                    // Adjusted from -14px to -16px to minimize the vertical gap.
-                    marginBottom: '-16px', 
+                    // Adjusted margin-bottom to account for the new timestamp size/position
+                    marginBottom: '-19px', 
                 }}>
               <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
               {message.text}
@@ -151,13 +150,12 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               ref={timeRef} 
               className="flex items-center gap-1 flex-shrink-0 self-end ml-auto" 
               style={{ 
-                fontSize: '11px', 
+                // *** NEW STYLES FROM USER INPUT APPLIED HERE ***
+                fontSize: '13px', 
                 lineHeight: '1', 
-                // *** CRITICAL CHANGE 2: Adjusted translateY to pull the timestamp up further ***
-                // Adjusted from 14px to 16px for a tighter fit.
-                // Maintained the user-provided horizontal fix (translateX(-13px)).
-                transform: message.isOutgoing ? 'translateY(16px) translateX(-13px)' : 'translateY(16px)',
-                color: message.isOutgoing ? '#dbeafe' : '#6b7280',
+                // Calculated translateY to compensate for font-size/line-height changes
+                transform: message.isOutgoing ? 'translateY(19px) translateX(-8px)' : 'translateY(19px)',
+                color: message.isOutgoing ? 'rgb(219, 234, 254)' : '#6b7280',
                 paddingTop: '4px' 
               }}>
               {message.time}
