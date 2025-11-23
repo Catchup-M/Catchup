@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Dynamic Icon)
+// chat.js - FINAL, FULLY FIXED VERSION (Reply Bar Keeps Keyboard Open)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -79,6 +79,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
     if (shouldReply) {
       setReplyingTo(message);
+      // NOTE: We rely on the input being focused already if this is called while typing.
       setTimeout(() => inputRef.current?.focus(), 100); 
     }
   };
@@ -306,7 +307,6 @@ function ChatView({ selectedChat, onBack }) {
     }
     // If the picker is closing, we want to try and bring up the keyboard
     if (!willOpen) {
-        // Attempt to bring the keyboard back up by focusing the input
         setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
@@ -378,7 +378,16 @@ function ChatView({ selectedChat, onBack }) {
               </div>
               <div className="text-sm text-gray-600 truncate">{replyingTo.text}</div>
             </div>
-            <button onClick={() => setReplyingTo(null)} className="ml-3 p-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0">
+            {/* UPDATED LOGIC HERE */}
+            <button 
+              onClick={() => {
+                setReplyingTo(null);
+                // When clicking an element outside the input, focus is lost.
+                // We must use focus() here to explicitly bring the cursor back and keep the keyboard open.
+                setTimeout(() => inputRef.current?.focus(), 0);
+              }} 
+              className="ml-3 p-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
