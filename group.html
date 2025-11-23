@@ -38,6 +38,12 @@
         setShowEmoji(!showEmoji);
       };
 
+      const handleInputClick = () => {
+        if (showEmoji) {
+          setShowEmoji(false);
+        }
+      };
+
       return (
         <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
           {/* Header */}
@@ -71,6 +77,7 @@
                   placeholder="Enter group name"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
+                  onClick={handleInputClick}
                   className="w-full pb-2 text-base text-gray-900 placeholder-gray-400 bg-transparent border-b-2 border-blue-400 focus:outline-none"
                 />
               </div>
