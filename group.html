@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Group</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useRef } = React;
+
+    function NewGroupUI() {
+      const [groupName, setGroupName] = useState('');
+      const [showEmoji, setShowEmoji] = useState(false);
+      const inputRef = useRef(null);
+
+      const handleToggleEmoji = () => {
+        if (!showEmoji) {
+          // Opening emoji picker - blur input to hide keyboard
+          inputRef.current?.blur();
+        } else {
+          // Closing emoji picker - focus input to show keyboard
+          inputRef.current?.focus();
+        }
+        setShowEmoji(!showEmoji);
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
+          {/* Header */}
+          <div className="bg-white shadow-sm">
+            <div className="flex items-center px-4 py-4">
+              <button className="mr-4 text-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <h1 className="text-xl font-semibold text-gray-900">New Group</h1>
+            </div>
+          </div>
+
+          {/* Group Photo and Name Section */}
+          <div className="bg-white px-4 py-6 border-b border-gray-200">
+            <div className="flex items-center gap-4">
+              {/* Camera Icon Button */}
+              <div className="w-16 h-16 rounded-full bg-blue-400 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 432 384">
+                  <path fill="white" d="M149 0h128l39 43h68q18 0 30.5 12.5T427 85v256q0 18-12.5 30.5T384 384H43q-18 0-30.5-12.5T0 341V85q0-17 12.5-29.5T43 43h67zm64 320q44 0 75.5-31.5T320 213t-31.5-75t-75.5-31t-75 31t-31 75t31 75.5t75 31.5zm0-21l-26-59l-59-27l59-26l26-59l27 59l59 26l-59 27z"/>
+                </svg>
+              </div>
+              
+              {/* Input Field */}
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Enter group name"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  className="w-full pb-2 text-base text-gray-900 placeholder-gray-400 bg-transparent border-b-2 border-blue-400 focus:outline-none"
+                />
+              </div>
+
+              {/* Emoji/Keyboard Toggle Button */}
+              <button 
+                onClick={handleToggleEmoji}
+                className="text-gray-400 flex-shrink-0 hover:text-gray-600 transition-colors"
+              >
+                {showEmoji ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 432 384">
+                    <path fill="currentColor" d="M384 43q18 0 30.5 12.5T427 85v214q0 17-12.5 29.5T384 341H43q-18 0-30.5-12.5T0 299V85q0-17 12.5-29.5T43 43h341zm-192 64v42h43v-42h-43zm0 64v42h43v-42h-43zm-64-64v42h43v-42h-43zm0 64v42h43v-42h-43zm-21 42v-42H64v42h43zm0-64v-42H64v42h43zm192 150v-43H128v43h171zm0-86v-42h-43v42h43zm0-64v-42h-43v42h43zm64 64v-42h-43v42h43zm0-64v-42h-43v42h43z"/>
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
+                    <path fill="currentColor" d="M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13s13-5.832 13-13S23.168 3 16 3zm0 2c6.065 0 11 4.935 11 11s-4.935 11-11 11S5 22.065 5 16S9.935 5 16 5zm-5 7c-2.094 0-3.61 1.207-3.61 1.207l1.22 1.586S9.692 14 11.001 14s2.39.793 2.39.793l1.22-1.586C14.608 13.207 13.093 12 11 12zm10 0c-2.094 0-3.61 1.207-3.61 1.207l1.22 1.586S19.692 14 21.001 14s2.39.793 2.39.793l1.22-1.586C24.608 13.207 23.093 12 21 12zm-10.19 7l-1.72 1a8.111 8.111 0 0 0 2.87 2.896c.297.176.604.333.923.47a7.894 7.894 0 0 0 2.031.56a7.988 7.988 0 0 0 2.172 0a7.953 7.953 0 0 0 4.572-2.293A8.14 8.14 0 0 0 22.91 20l-1.72-1a5.996 5.996 0 0 1-6.795 2.783a5.922 5.922 0 0 1-1.436-.611A6.02 6.02 0 0 1 10.811 19z"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Auto-Delete Section */}
+          <div className="bg-white mt-2 border-t border-b border-gray-200">
+            <div className="px-4 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 26 26">
+                    <path fill="currentColor" d="M13 0a2 2 0 1 0-.001 3.999A2 2 0 0 0 13 0zm5.156 1.25c-.293.016-.634.159-.875.563c-.688 1.153.392 1.852.719 2.03C21.244 5.62 23.469 9.048 23.469 13c0 5.77-4.699 10.469-10.469 10.469S2.531 18.77 2.531 13c0-1.326.265-2.584.719-3.75c.059-.151.616-1.173-.5-1.875c-.764-.48-1.506.064-1.656.406A12.94 12.94 0 0 0 0 13c0 7.18 5.82 13 13 13s13-5.82 13-13c0-5.113-2.956-9.538-7.25-11.656c-.045-.023-.3-.11-.594-.094zM3.375 3.344c-.314.314 7.727 10.476 7.969 10.781c.008.012.022.019.031.031l.094.125c.366.44.914.718 1.531.719a2.003 2.003 0 0 0 2-2a1.984 1.984 0 0 0-.719-1.531S3.694 3.025 3.375 3.344z"/>
+                  </svg>
+                </div>
+                <span className="text-base text-gray-900">Auto-Delete Messages</span>
+              </div>
+              <span className="text-blue-500 font-medium">Off</span>
+            </div>
+            
+            <div className="px-4 pb-4">
+              <p className="text-sm text-gray-500">
+                Automatically delete messages in this group for everyone after a period of time.
+              </p>
+            </div>
+          </div>
+
+          {/* Members Section */}
+          <div className="bg-white mt-2 flex-1">
+            <div className="px-4 py-3">
+              <h2 className="text-sm font-medium text-blue-500">1 member</h2>
+            </div>
+            
+            {/* Member Item */}
+            <div className="px-4 py-3 flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-cyan-400 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-xl">—</span>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-medium text-gray-900 truncate">
+                  ______FAT BONE....._
+                </h3>
+                <p className="text-sm text-gray-500">
+                  last seen Oct 06 at 7:02 PM
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Floating Action Button */}
+          <button 
+            className="fixed right-6 bg-blue-500 rounded-full shadow-lg flex items-center justify-center text-white hover:bg-blue-600 transition-all duration-300 w-14 h-14 z-20"
+            style={{ 
+              bottom: showEmoji ? '340px' : '24px'
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+
+          {/* Emoji Picker Bottom Sheet */}
+          <div 
+            className="fixed left-0 right-0 bg-gray-100 transition-transform duration-300 ease-out z-10"
+            style={{
+              height: '300px',
+              transform: showEmoji ? 'translateY(0)' : 'translateY(100%)',
+              bottom: 0
+            }}
+          >
+            {/* Empty emoji picker container */}
+            <div className="w-full h-full">
+              {/* Content would go here */}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<NewGroupUI />);
+  </script>
+</body>
+</html>
