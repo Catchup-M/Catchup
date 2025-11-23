@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Send Arrow Animation Fixed)
+// chat.js - FINAL, FULLY FIXED VERSION (Input Field Width Fixed)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -430,6 +430,7 @@ function ChatView({ selectedChat, onBack }) {
             )}
           </button>
 
+          {/* Input Field - Occupies remaining space */}
           <div
             ref={inputRef}
             contentEditable
@@ -444,53 +445,55 @@ function ChatView({ selectedChat, onBack }) {
             suppressContentEditableWarning={true}
           />
 
-          {/* Attach Button (Pin) */}
-          <button 
-            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
-            className="p-2 flex-shrink-0 self-end transition-opacity duration-200" 
-            style={{ 
+          {/* NEW: Wrapper for Attach, Camera, and Mic buttons */}
+          <div 
+            className="flex items-end gap-1 transition-all duration-200 overflow-hidden" 
+            style={{
+              width: hasText ? '0px' : 'auto',
               opacity: hasText ? 0 : 1, 
-              pointerEvents: hasText ? 'none' : 'auto'
-              // Removed size/transform manipulation to keep position stable
+              pointerEvents: hasText ? 'none' : 'auto',
+              // Use negative margin to compensate for 'gap-1' when visible
+              marginRight: hasText ? '0' : '-4px'
             }}>
-            <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-              <g transform="rotate(-42, 16, 16)">
-                <path d="M13.17,29.9a4,4,0,0,1-2.83-1.17L4.69,23.07a4,4,0,0,1,0-5.66L18.83,3.27a4.1,4.1,0,0,1,5.66,0L27.31,6.1a4,4,0,0,1,0,5.66L16,23.07a4,4,0,0,1-5.66-5.66l9.2-9.19L21,9.64l-9.19,9.19a2,2,0,0,0,2.83,2.83L25.9,10.34a2,2,0,0,0,0-2.83L23.07,4.69a2,2,0,0,0-2.83,0L6.1,18.83a2,2,0,0,0,0,2.83l5.66,5.65a2,2,0,0,0,2.83,0l12-12L28,16.71l-12,12A4,4,0,0,1,13.17,29.9Z"></path>
-              </g>
-            </svg>
-          </button>
 
-          {/* Camera Button */}
-          <button 
-            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
-            className="p-2 flex-shrink-0 self-end transition-opacity duration-200" 
-            style={{ 
-              opacity: hasText ? 0 : 1, 
-              pointerEvents: hasText ? 'none' : 'auto'
-              // Removed size/transform manipulation to keep position stable
-            }}>
-            <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-              {/* Stroke color manually set to match existing icons' gray (#6b7280) */}
-              <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
-              <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle> 
-            </svg>
-          </button>
+            {/* Attach Button (Pin) */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              className="p-2 flex-shrink-0"
+              // Removed redundant inline styles
+              >
+              <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <g transform="rotate(-42, 16, 16)">
+                  <path d="M13.17,29.9a4,4,0,0,1-2.83-1.17L4.69,23.07a4,4,0,0,1,0-5.66L18.83,3.27a4.1,4.1,0,0,1,5.66,0L27.31,6.1a4,4,0,0,1,0,5.66L16,23.07a4,4,0,0,1-5.66-5.66l9.2-9.19L21,9.64l-9.19,9.19a2,2,0,0,0,2.83,2.83L25.9,10.34a2,2,0,0,0,0-2.83L23.07,4.69a2,2,0,0,0-2.83,0L6.1,18.83a2,2,0,0,0,0,2.83l5.66,5.65a2,2,0,0,0,2.83,0l12-12L28,16.71l-12,12A4,4,0,0,1,13.17,29.9Z"></path>
+                </g>
+              </svg>
+            </button>
 
-          {/* Microphone Button (Voice) */}
-          <button 
-            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
-            className="p-2 flex-shrink-0 self-end hover:bg-gray-100 rounded-full transition-opacity duration-200" 
-            style={{ 
-              opacity: hasText ? 0 : 1, 
-              pointerEvents: hasText ? 'none' : 'auto' 
-              // Removed size/transform manipulation to keep position stable
-            }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-              <rect x="8" y="2" width="8" height="13" rx="4"></rect>
-              <path d="M20,10v1a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V10"></path>
-              <line x1="12" y1="19" x2="12" y2="22"></line>
-            </svg>
-          </button>
+            {/* Camera Button */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              className="p-2 flex-shrink-0" 
+              // Removed redundant inline styles
+              >
+              <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
+                <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle> 
+              </svg>
+            </button>
+
+            {/* Microphone Button (Voice) */}
+            <button 
+              onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+              className="p-2 flex-shrink-0 hover:bg-gray-100 rounded-full" 
+              // Removed redundant inline styles
+              >
+              <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                <rect x="8" y="2" width="8" height="13" rx="4"></rect>
+                <path d="M20,10v1a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V10"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+              </svg>
+            </button>
+          </div>
 
           {/* Send Button - Fixed to disappear cleanly without translation */}
           <button 
@@ -499,7 +502,6 @@ function ChatView({ selectedChat, onBack }) {
             style={{ 
               opacity: hasText ? 1 : 0, 
               pointerEvents: hasText ? 'auto' : 'none', 
-              // Control visibility and space by changing width and padding
               width: hasText ? 'auto' : 0, 
               padding: hasText ? '0.5rem' : '0' 
             }}>
