@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Scrollbar Hidden)
+// chat.js - FINAL, FULLY FIXED VERSION (Send Arrow Animation Fixed)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -444,10 +444,15 @@ function ChatView({ selectedChat, onBack }) {
             suppressContentEditableWarning={true}
           />
 
-          {/* Attach, Voice, Send buttons (unchanged) */}
+          {/* Attach Button (Pin) */}
           <button 
-            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft for this button too
-            className="p-2 flex-shrink-0 self-end transition-all duration-200" style={{ opacity: hasText ? 0 : 1, transform: hasText ? 'translateX(10px)' : 'translateX(0)', pointerEvents: hasText ? 'none' : 'auto', width: hasText ? 0 : 'auto', padding: hasText ? '0.5rem 0' : '0.5rem' }}>
+            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+            className="p-2 flex-shrink-0 self-end transition-opacity duration-200" 
+            style={{ 
+              opacity: hasText ? 0 : 1, 
+              pointerEvents: hasText ? 'none' : 'auto'
+              // Removed size/transform manipulation to keep position stable
+            }}>
             <svg fill="#6b7280" viewBox="0 0 32 32" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
               <g transform="rotate(-42, 16, 16)">
                 <path d="M13.17,29.9a4,4,0,0,1-2.83-1.17L4.69,23.07a4,4,0,0,1,0-5.66L18.83,3.27a4.1,4.1,0,0,1,5.66,0L27.31,6.1a4,4,0,0,1,0,5.66L16,23.07a4,4,0,0,1-5.66-5.66l9.2-9.19L21,9.64l-9.19,9.19a2,2,0,0,0,2.83,2.83L25.9,10.34a2,2,0,0,0,0-2.83L23.07,4.69a2,2,0,0,0-2.83,0L6.1,18.83a2,2,0,0,0,0,2.83l5.66,5.65a2,2,0,0,0,2.83,0l12-12L28,16.71l-12,12A4,4,0,0,1,13.17,29.9Z"></path>
@@ -455,9 +460,31 @@ function ChatView({ selectedChat, onBack }) {
             </svg>
           </button>
 
+          {/* Camera Button */}
           <button 
-            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft for this button too
-            className="p-2 flex-shrink-0 self-end hover:bg-gray-100 rounded-full transition-all duration-200" style={{ opacity: hasText ? 0 : 1, transform: hasText ? 'translateX(10px)' : 'translateX(0)', pointerEvents: hasText ? 'none' : 'auto', width: hasText ? 0 : 'auto', padding: hasText ? '0.5rem 0' : '0.5rem' }}>
+            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+            className="p-2 flex-shrink-0 self-end transition-opacity duration-200" 
+            style={{ 
+              opacity: hasText ? 0 : 1, 
+              pointerEvents: hasText ? 'none' : 'auto'
+              // Removed size/transform manipulation to keep position stable
+            }}>
+            <svg viewBox="0 0 24 24" fill="none" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+              {/* Stroke color manually set to match existing icons' gray (#6b7280) */}
+              <path d="M2 12C2 7.28595 2 4.92893 3.46447 3.46447C4.92893 2 7.28595 2 12 2C16.714 2 19.0711 2 20.5355 3.46447C22 4.92893 22 7.28595 22 12C22 16.714 22 19.0711 20.5355 20.5355C19.0711 22 16.714 22 12 22C7.28595 22 4.92893 22 3.46447 20.5355C2 19.0711 2 16.714 2 12Z" stroke="#6b7280" strokeWidth="1.5"></path> 
+              <circle cx="12" cy="12" r="4" stroke="#6b7280" strokeWidth="1.5"></circle> 
+            </svg>
+          </button>
+
+          {/* Microphone Button (Voice) */}
+          <button 
+            onMouseDown={(e) => e.preventDefault()} // Prevents focus theft
+            className="p-2 flex-shrink-0 self-end hover:bg-gray-100 rounded-full transition-opacity duration-200" 
+            style={{ 
+              opacity: hasText ? 0 : 1, 
+              pointerEvents: hasText ? 'none' : 'auto' 
+              // Removed size/transform manipulation to keep position stable
+            }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="1.8" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
               <rect x="8" y="2" width="8" height="13" rx="4"></rect>
               <path d="M20,10v1a8,8,0,0,1-8,8h0a8,8,0,0,1-8-8V10"></path>
@@ -465,7 +492,17 @@ function ChatView({ selectedChat, onBack }) {
             </svg>
           </button>
 
-          <button onClick={handleSend} className="p-2 flex-shrink-0 self-end transition-all duration-200" style={{ opacity: hasText ? 1 : 0, transform: hasText ? 'translateX(0)' : 'translateX(-10px)', pointerEvents: hasText ? 'auto' : 'none', width: hasText ? 'auto' : 0, padding: hasText ? '0.5rem' : '0.5rem 0' }}>
+          {/* Send Button - Fixed to disappear cleanly without translation */}
+          <button 
+            onClick={handleSend} 
+            className="p-2 flex-shrink-0 self-end transition-all duration-200" 
+            style={{ 
+              opacity: hasText ? 1 : 0, 
+              pointerEvents: hasText ? 'auto' : 'none', 
+              // Control visibility and space by changing width and padding
+              width: hasText ? 'auto' : 0, 
+              padding: hasText ? '0.5rem' : '0' 
+            }}>
             <svg viewBox="0 -0.5 21 21" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
               <path d="M2.61258 9L0.05132 1.31623C-0.22718 0.48074 0.63218 -0.28074 1.42809 0.09626L20.4281 9.0963C21.1906 9.4575 21.1906 10.5425 20.4281 10.9037L1.42809 19.9037C0.63218 20.2807 -0.22718 19.5193 0.05132 18.6838L2.61258 11H8.9873C9.5396 11 9.9873 10.5523 9.9873 10C9.9873 9.4477 9.5396 9 8.9873 9H2.61258z" fill="#3b82f6" fillRule="evenodd" clipRule="evenodd" />
             </svg>
