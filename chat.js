@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Strictly No Focus() Calls)
+// chat.js - FINAL, FULLY FIXED VERSION (Scrollbar Hidden)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -79,8 +79,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
     if (shouldReply) {
       setReplyingTo(message);
-      // NOTE: We rely on the input being focused already if this is called while typing.
-      // If used standalone, a focus() call might be necessary, but adhering to the constraint.
     }
   };
 
@@ -310,10 +308,6 @@ function ChatView({ selectedChat, onBack }) {
     const willOpen = !showEmojiPicker;
     setShowEmojiPicker(willOpen);
     
-    // If the picker is closing, we must actively bring focus back to the input 
-    // to reopen the keyboard if the element that was just clicked isn't preventing default focus.
-    // However, since we are constrained not to use focus(), the browser will likely dismiss the keyboard.
-    // We rely on the input's handleFocus property if the input receives focus after the click.
     if (willOpen) {
       setTimeout(() => {
         const scrollElement = getScrollElement();
@@ -351,8 +345,14 @@ function ChatView({ selectedChat, onBack }) {
       {/* Messages Area - Scrollbar hidden here */}
       <div ref={chatContainerRef} className="flex-1 px-4 bg-white flex flex-col" style={{ scrollBehavior: 'smooth', overflowX: 'hidden' }}>
         
-        {/* Scrollable Wrapper with HIDE SCROLLBAR class */}
-        <div className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar">
+        {/* Scrollable Wrapper with HIDE SCROLLBAR class and vendor prefixes */}
+        <div 
+          className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar"
+          style={{ 
+            scrollbarWidth: 'none',     // Firefox
+            msOverflowStyle: 'none'     // IE and Edge
+          }}
+        >
 
           {/* Floating Date Badge (Sticky to the top of the scrollable content) */}
           <div className="sticky top-0 z-10 flex justify-center transition-opacity duration-200 py-1" style={{ opacity: showFloatingDate ? 1 : 0, pointerEvents: 'none' }}>
@@ -389,7 +389,7 @@ function ChatView({ selectedChat, onBack }) {
               </div>
               <div className="text-sm text-gray-600 truncate">{replyingTo.text}</div>
             </div>
-            {/* CORRECTED LOGIC: onMouseDown prevents focus theft */}
+            {/* onMouseDown prevents focus theft */}
             <button 
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
@@ -411,7 +411,6 @@ function ChatView({ selectedChat, onBack }) {
         <div className="w-full max-w-2xl mx-auto flex items-center p-2 gap-1">
           
           {/* Dynamic Emoji/Keyboard Button */}
-          {/* NOTE: We cannot use onMouseDown here because toggling the emoji picker should cause a state change that affects the keyboard, potentially requiring a focus() call, which is against the constraint. We rely on the input's onFocus to handle the picker closing. */}
           <button onClick={toggleEmojiPicker} className="p-2 flex-shrink-0 self-end">
             {showEmojiPicker ? (
               // KEYBOARD ICON (when picker is OPEN)
