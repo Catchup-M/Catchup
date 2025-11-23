@@ -1,4 +1,5 @@
-// chat.js - FINAL, FULLY FIXED VERSION (Scrollbar Hidden)
+
+// chat.js - FINAL, FULLY FIXED VERSION (Keyboard Stays Open)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -245,11 +246,20 @@ function ChatView({ selectedChat, onBack }) {
 
     setMessages([...messages, newMessage]);
     setReplyingTo(null);
+    
     if (inputRef.current) {
       inputRef.current.textContent = '';
       inputRef.current.setAttribute('data-empty', 'true');
       setHasText(false);
+      
+      // *** FIX FOR KEEPING KEYBOARD OPEN ***
+      // Re-focus immediately after clearing the input content.
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0); 
     }
+    
+    // Scroll to bottom after state and focus changes
     setTimeout(() => scrollToBottom('smooth'), 100);
   };
 
@@ -432,4 +442,3 @@ function ChatView({ selectedChat, onBack }) {
 
 window.ChatView = ChatView;
 window.MessageBubble = MessageBubble;
-
