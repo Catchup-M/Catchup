@@ -71,15 +71,17 @@
               
               {/* Input Field */}
               <div className="flex-1 relative">
-                <input
+                <div
                   ref={inputRef}
-                  type="text"
-                  placeholder="Enter group name"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
+                  contentEditable="true"
                   onClick={handleInputClick}
-                  className="w-full pb-2 text-base text-gray-900 placeholder-gray-400 bg-transparent border-b-2 border-blue-400 focus:outline-none"
-                />
+                  onInput={(e) => setGroupName(e.currentTarget.textContent)}
+                  data-placeholder="Enter group name"
+                  className="w-full pb-2 text-base text-gray-900 bg-transparent border-b-2 border-blue-400 focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+                  suppressContentEditableWarning={true}
+                >
+                  {groupName}
+                </div>
               </div>
 
               {/* Emoji/Keyboard Toggle Button */}
