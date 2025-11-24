@@ -1,4 +1,4 @@
-// chat.js - FINAL, FULLY FIXED VERSION (WITH TIGHT BOTTOM ALIGNMENT)
+// chat.js - FINAL VERSION WITH TIGHT MULTI-LINE BUBBLE ALIGNMENT
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -12,6 +12,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const bubbleRef = useRef(null);
   const textRef = useRef(null);
   const timeRef = useRef(null);
+  
+  // Checkmark SVG for status icon
   const checkmarkSvg = (
     <svg 
       viewBox="0 0 24 24" 
@@ -27,29 +29,24 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     </svg>
   );
 
+  // Layout calculation effect
   useEffect(() => {
-    // We only need to run this once after the first render
     if (textRef.current && timeRef.current) {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      // Calculate total width needed for single line: Text + Time/Checkmark + Padding
-      // Time/Checkmark width is based on the ref for accurate measurement.
-      const totalWidth = textWidth + timeWidth + 24; 
-      
-      // Set MAX_SINGLE_LINE_WIDTH to be slightly less than max-w-xs (320px) 
+      const totalWidth = textWidth + timeWidth + 24; // Text + Time/Checkmark + Gap/Padding adjustment
       const MAX_SINGLE_LINE_WIDTH = 290; 
 
-      // If the content is wider than the max allowed single-line width, it must be multi-line
       if (totalWidth > MAX_SINGLE_LINE_WIDTH) {
         setLayout('multi');
       } else {
-        // If it fits, we use the compact single-line layout
         setLayout('single');
       }
     }
-  }, [message.text, layout]); // Add layout to dependency array to re-run if it changes
+  }, [message.text, layout]); 
 
+  // Touch handlers for swipe-to-reply (omitted for brevity)
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
@@ -103,13 +100,19 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       setReplyingTo(message);
     }
   };
+  
+  // Determine the appropriate padding class
+  // FIX: Reduced vertical padding (py-2 instead of p-3) for tight multi-line bubbles
+  const paddingClass = (layout === 'multi' && message.isOutgoing) 
+    ? 'px-3 py-2' 
+    : 'p-3';      
 
   return (
     <div className={`flex items-end ${message.isOutgoing ? 'justify-end' : ''}`}>
       <div
         ref={bubbleRef}
-        // Use p-3 instead of px-4 py-2.5 for a slightly fuller look consistent with Telegram
-        className="rounded-2xl p-3 max-w-xs" 
+        // Use paddingClass for dynamic padding control
+        className={`rounded-2xl max-w-xs ${paddingClass}`} 
         style={{
           backgroundColor: message.isOutgoing ? '#60a5fa' : '#f5f5f5',
           // Tail/corner logic
@@ -131,7 +134,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 color: message.isOutgoing ? '#ffffff' : '#000000', 
                 fontSize: '16px', 
                 lineHeight: '1', 
-                whiteSpace: 'nowrap' // Crucial for single-line to prevent wrapping
+                whiteSpace: 'nowrap'
               }}>
               {message.text}
             </span>
@@ -150,41 +153,34 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           </div>
         ) : (
           /* === MULTI LINE LAYOUT (Telegram Style Inline Status) === */
-          // Removed paddingBottom: '0'
           <div className="flex flex-wrap items-end"> 
             
-            {/* The main text is wrapped in a span for measuring, but we need the actual content to render and wrap naturally */}
+            {/* Hidden span for measurement */}
             <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
 
-            {/* Content to display - uses inline-block to allow the flex-wrap to work its magic */}
+            {/* Content to display */}
             <span 
               style={{ 
                 color: message.isOutgoing ? '#ffffff' : '#000000', 
                 fontSize: '16px', 
-                lineHeight: '1.2', // Adjusted for tighter wrapping
-                display: 'inline', // Let text flow naturally and wrap
+                lineHeight: '1.2', 
+                display: 'inline', 
                 wordBreak: 'break-word',
-                // Added vertical alignment to push text to the bottom edge of its line-box
-                verticalAlign: 'bottom', // NEW: Crucial for minimizing bottom padding
-                // Add a slight padding to create space before the status on the last line
+                verticalAlign: 'bottom', // Anchors text bottom for tight wrap
                 paddingRight: '6px', 
-                whiteSpace: 'pre-wrap' // Preserve newlines/spacing
+                whiteSpace: 'pre-wrap'
               }}>
               {message.text}
             </span>
 
-            {/* The status block - flex item that flows right after the text. 
-                When the text wraps, the status sits next to the last line. 
-                We use flex-shrink-0 to ensure it doesn't compress.
-            */}
+            {/* The status block */}
             <span 
               ref={timeRef} 
               className="flex items-center gap-1 flex-shrink-0 ml-auto" 
               style={{ 
                 fontSize: '13px', 
-                lineHeight: '1', // Adjusted for tight alignment
+                lineHeight: '1', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                // Removed transform: translateY for perfect vertical alignment with line-height: 1
                 transform: 'translateY(0)' 
               }}>
               {message.time}
@@ -197,7 +193,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   );
 };
 
-// ... Rest of ChatView component remains the same ...
+// ----------------------------------------------------------------------
+// ChatView Component
+// ----------------------------------------------------------------------
 
 function ChatView({ selectedChat, onBack }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -307,7 +305,6 @@ function ChatView({ selectedChat, onBack }) {
     };
 
     // 1. CLEAR CONTENT DIRECTLY to maintain current focus state.
-    // The browser doesn't interpret this DOM manipulation as a focus loss.
     if (inputRef.current) {
       inputRef.current.textContent = '';
       inputRef.current.setAttribute('data-empty', 'true');
@@ -400,7 +397,7 @@ function ChatView({ selectedChat, onBack }) {
       {/* Messages Area - Scrollbar hidden here */}
       <div ref={chatContainerRef} className="flex-1 px-4 bg-white flex flex-col" style={{ scrollBehavior: 'smooth', overflowX: 'hidden' }}>
         
-        {/* Scrollable Wrapper with HIDE SCROLLBAR class and vendor prefixes */}
+        {/* Scrollable Wrapper */}
         <div 
           className="flex-1 overflow-y-auto flex flex-col scroll-content hide-scrollbar"
           style={{ 
@@ -409,14 +406,14 @@ function ChatView({ selectedChat, onBack }) {
           }}
         >
 
-          {/* Floating Date Badge (Sticky to the top of the scrollable content) */}
+          {/* Floating Date Badge */}
           <div className="sticky top-0 z-10 flex justify-center transition-opacity duration-200 py-1" style={{ opacity: showFloatingDate ? 1 : 0, pointerEvents: 'none' }}>
             <div className="bg-black bg-opacity-70 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg">
               <span className="text-white text-sm font-medium">Today</span>
             </div>
           </div>
           
-          {/* Main Content: This div grows to fill the container height when content is short */}
+          {/* Main Content */}
           <div className="flex flex-col flex-grow justify-end">
             <div ref={dateBadgeRef} className="flex justify-center my-4">
               <div className="bg-black bg-opacity-60 backdrop-blur-sm px-3 py-0.5 rounded-full">
@@ -444,7 +441,6 @@ function ChatView({ selectedChat, onBack }) {
               </div>
               <div className="text-sm text-gray-600 truncate">{replyingTo.text}</div>
             </div>
-            {/* onMouseDown prevents focus theft */}
             <button 
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
@@ -485,7 +481,7 @@ function ChatView({ selectedChat, onBack }) {
             )}
           </button>
 
-          {/* Input Field - Occupies remaining space */}
+          {/* Input Field */}
           <div
             ref={inputRef}
             contentEditable
@@ -500,7 +496,7 @@ function ChatView({ selectedChat, onBack }) {
             suppressContentEditableWarning={true}
           />
 
-          {/* Wrapper for Attach, Camera, and Mic buttons */}
+          {/* Attach, Camera, and Mic buttons */}
           <div 
             className="flex items-end gap-1 transition-all duration-200 overflow-hidden" 
             style={{
@@ -546,7 +542,7 @@ function ChatView({ selectedChat, onBack }) {
             </button>
           </div>
 
-          {/* Send Button - Fixed to disappear cleanly without translation */}
+          {/* Send Button */}
           <button 
             onClick={handleSend} 
             className="p-2 flex-shrink-0 self-end transition-all duration-200" 
