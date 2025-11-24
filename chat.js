@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION WITH CUSTOM SINGLE-LINE COERCION
+// chat.js - FINAL VERSION WITH CUSTOM SINGLE-LINE COERCION AND TIGHT OUTGOING STATUS
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -42,7 +42,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
       // Determine if it should be multi-line
       const isTooWide = totalWidth > MAX_SINGLE_LINE_WIDTH;
-      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT; // NEW LOGIC
+      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT;
 
       if (isTooWide || isForcedMultiLine) {
         setLayout('multi');
@@ -171,7 +171,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 display: 'inline', 
                 wordBreak: 'break-word',
                 verticalAlign: 'bottom',
-                paddingRight: message.isOutgoing ? '6px' : '0', 
+                // NEW: Use negative margin to pull text closer to status on outgoing multi-line messages
+                marginRight: message.isOutgoing ? '-4px' : '0', 
                 whiteSpace: 'pre-wrap'
               }}>
               {message.text}
@@ -180,14 +181,16 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
             {/* The status block - Right push applied here */}
             <span 
               ref={timeRef} 
-              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
+              // NEW: Use conditional right margin (mr-1) for a slight inward push on outgoing messages
+              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto ${message.isOutgoing ? 'mr-1' : ''}`} 
               style={{ 
                 fontSize: '13px', 
                 lineHeight: '1', 
                 verticalAlign: 'bottom', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 transform: 'translateY(0)',
-                justifyContent: message.isOutgoing ? 'flex-start' : 'flex-end', 
+                // Ensure time/status aligns to the right edge of its own block for both types
+                justifyContent: 'flex-end', 
                 minWidth: '50px' 
               }}>
               {/* Incoming: Only Time. Outgoing: Time + Checkmark */}
@@ -218,7 +221,7 @@ function ChatView({ selectedChat, onBack }) {
     { id: 2, text: 'Hello, this is a longer message that should force the layout into a multi-line state so we can test the inline timestamp feature.', time: '07:05 AM', isOutgoing: true },
     { id: 3, text: 'This is a multi-line response from the other person to test the tight alignment on the left side, and ensure the time stamp is on the far right.', time: '07:06 AM', isOutgoing: false },
     { id: 4, text: 'This is a single line outgoing message.', time: '07:07 AM', isOutgoing: true },
-    { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, // TARGETED MESSAGE
+    { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, // TARGETED MESSAGE (now forced to multi-line)
     { id: 6, text: 'This message is also long enough to be a natural single line one but not as long as the one that breaks.', time: '07:09 AM', isOutgoing: false },
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
