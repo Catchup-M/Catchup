@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION: TIGHT OUTGOING MULTI-LINE STATUS SPACING FIX
+// chat.js - FINAL VERSION: IMPLEMENTING DEDICATED SINGLE-LINE LAYOUT
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -13,8 +13,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const textRef = useRef(null);
   const timeRef = useRef(null);
   
-  // Define the target message that must be forced to multi-line alignment
-  const FORCED_MULTI_LINE_TEXT = "How are you doing today my dear";
+  // NOTE: FORCED_MULTI_LINE_TEXT is removed as we are now handling these 
+  // with the new dedicated single-line structure.
 
   // Checkmark SVG for status icon
   const checkmarkSvg = (
@@ -37,18 +37,21 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      // We must also account for the gap between text and time (e.g., 16px for gap + padding compensation)
-      const totalWidth = textWidth + timeWidth + 16; 
+      // We must also account for the gap between text and time (e.g., 8px)
+      const gap = 8;
+      const totalWidth = textWidth + timeWidth + gap; 
       
-      // Reduced the threshold to 280 (from 290) to be more aggressive 
-      // about pushing long single lines into multi-line mode.
-      const MAX_SINGLE_LINE_WIDTH = 280; 
+      // CRITICAL: Increased threshold slightly. We now rely on the text content 
+      // wrapping to trigger 'multi'. If it can fit on one line within the bubble's 
+      // max-width (approx 300px), it is 'single'.
+      const MAX_SINGLE_LINE_WIDTH = 295; 
 
       // Determine if it should be multi-line
+      // If the total width exceeds the max bubble width, the text will wrap, 
+      // so we explicitly use 'multi'.
       const isTooWide = totalWidth > MAX_SINGLE_LINE_WIDTH;
-      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT;
 
-      if (isTooWide || isForcedMultiLine) {
+      if (isTooWide) {
         setLayout('multi');
       } else {
         setLayout('single');
@@ -111,10 +114,16 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     }
   };
   
-  // Padding class selection (py-2 for tight multi-line bubbles on both sides)
+  // Padding class selection
+  // The new single-line layout requires p-3, while multi-line is px-3 py-2.
   const paddingClass = (layout === 'multi') 
     ? 'px-3 py-2' 
     : 'p-3';      
+
+  // Style for the message text color
+  const textColor = message.isOutgoing ? '#ffffff' : '#000000';
+  const timeColor = message.isOutgoing ? 'rgb(219,234,254)' : '#6b7280';
+  const bubbleColor = message.isOutgoing ? '#60a5fa' : '#f5f5f5';
 
   return (
     <div className={`flex items-end ${message.isOutgoing ? 'justify-end' : ''}`}>
@@ -122,7 +131,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         ref={bubbleRef}
         className={`rounded-2xl max-w-xs ${paddingClass}`} 
         style={{
-          backgroundColor: message.isOutgoing ? '#60a5fa' : '#f5f5f5',
+          backgroundColor: bubbleColor,
           // Tail/corner logic
           borderRadius: message.isOutgoing ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
           transform: `translateX(${swipeX}px)`,
@@ -133,29 +142,40 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* === SINGLE LINE LAYOUT === */}
+        
+        {/* === SINGLE LINE LAYOUT (Your Requested Structure) === */}
         {layout === 'single' ? (
-          <div className="flex items-baseline gap-2">
+          <div className="flex items-end gap-2">
+            {/* Message text (used to measure width) */}
             <span 
               ref={textRef} 
               style={{ 
-                color: message.isOutgoing ? '#ffffff' : '#000000', 
                 fontSize: '16px', 
-                lineHeight: '1', 
-                whiteSpace: 'nowrap'
+                lineHeight: '1.2', 
+                color: textColor, 
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                display: 'inline-block',
+                maxWidth: '36rem' // Prevent oversized bubble on super-long single lines
               }}>
               {message.text}
             </span>
+
+            {/* Timestamp + Checkmark (Used to measure width) */}
             <span 
               ref={timeRef} 
-              className="flex items-center gap-1 flex-shrink-0" 
               style={{ 
-                fontSize: '11px', 
-                lineHeight: '1', 
-                transform: 'translateY(3px)', 
-                color: message.isOutgoing ? '#dbeafe' : '#6b7280' 
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px', // Gap is 6px per your request, slightly tighter
+                fontSize: '12px',
+                lineHeight: '1',
+                color: timeColor,
+                flexShrink: 0, // Prevents timestamp from shrinking
+                // CRITICAL: Aligns time exactly to the bottom of the text block
+                transform: 'translateY(1px)', 
               }}>
-              {message.time}
+              <span>{message.time}</span>
               {message.isOutgoing && checkmarkSvg}
             </span>
           </div>
@@ -163,20 +183,19 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
           /* === MULTI LINE LAYOUT (Timestamp is forced to the bottom right) === */
           <div className="flex flex-wrap items-end"> 
             
-            {/* Hidden span for measurement */}
+            {/* Hidden span for measurement (still needed for 'multi' detection) */}
             <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
 
             {/* Content to display */}
             <span 
               style={{ 
-                color: message.isOutgoing ? '#ffffff' : '#000000', 
+                color: textColor, 
                 fontSize: '16px', 
                 lineHeight: '1.2', 
                 display: 'inline', 
                 wordBreak: 'break-word',
                 verticalAlign: 'bottom',
                 whiteSpace: 'pre-wrap',
-                // Reserving space for the status span to potentially tuck in closer
                 marginRight: message.isOutgoing ? '4px' : '0' 
               }}>
               {message.text}
@@ -190,11 +209,10 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 fontSize: '13px', 
                 lineHeight: '1', 
                 verticalAlign: 'bottom', 
-                color: message.isOutgoing ? '#dbeafe' : '#6b7280',
+                color: timeColor,
                 transform: 'translateY(0)',
                 justifyContent: 'flex-end', 
-                // CRITICAL FIX: Negative right margin pulls the status block 
-                // slightly into the bubble's padding area, eliminating the gap.
+                // Negative right margin pulls the status block into the padding area
                 marginRight: message.isOutgoing ? '-4px' : '0',
                 minWidth: '50px' 
               }}>
@@ -215,7 +233,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 };
 
 // ----------------------------------------------------------------------
-// ChatView Component
+// ChatView Component (Unchanged)
 // ----------------------------------------------------------------------
 
 function ChatView({ selectedChat, onBack }) {
@@ -226,9 +244,9 @@ function ChatView({ selectedChat, onBack }) {
     { id: 2, text: 'Hello, this is a longer message that should force the layout into a multi-line state so we can test the inline timestamp feature.', time: '07:05 AM', isOutgoing: true },
     { id: 3, text: 'This is a multi-line response from the other person to test the tight alignment on the left side, and ensure the time stamp is on the far right.', time: '07:06 AM', isOutgoing: false },
     { id: 4, text: 'This is a single line outgoing message.', time: '07:07 AM', isOutgoing: true },
-    { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, // TARGETED MESSAGE (now forced to multi-line)
+    { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, 
     { id: 6, text: 'This message is also long enough to be a natural single line one but not as long as the one that breaks.', time: '07:09 AM', isOutgoing: false },
-    { id: 7, text: 'Fghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', time: '07:10 AM', isOutgoing: true }, // Should now be forced to multi-line due to reduced MAX_SINGLE_LINE_WIDTH
+    { id: 7, text: 'Fghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', time: '07:10 AM', isOutgoing: true }, // This will now correctly trigger 'single' and use the tight single-line layout
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
