@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION WITH TIGHT MULTI-LINE BUBBLE ALIGNMENT (BOTH SIDES)
+// chat.js - FINAL VERSION WITH TIGHT MULTI-LINE BUBBLE ALIGNMENT (TIMESTAMP PUSHED RIGHT ON INCOMING BUBBLE)
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -45,7 +45,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     }
   }, [message.text, layout]); 
 
-  // Touch handlers for swipe-to-reply (omitted for brevity)
+  // Touch handlers for swipe-to-reply 
   const handleTouchStart = (e) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
@@ -100,7 +100,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     }
   };
   
-  // FIX: Apply reduced vertical padding (py-2) if the layout is multi-line, regardless of incoming/outgoing.
+  // Padding class selection (py-2 for tight multi-line bubbles on both sides)
   const paddingClass = (layout === 'multi') 
     ? 'px-3 py-2' 
     : 'p-3';      
@@ -109,7 +109,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
     <div className={`flex items-end ${message.isOutgoing ? 'justify-end' : ''}`}>
       <div
         ref={bubbleRef}
-        // Use paddingClass for dynamic padding control
         className={`rounded-2xl max-w-xs ${paddingClass}`} 
         style={{
           backgroundColor: message.isOutgoing ? '#60a5fa' : '#f5f5f5',
@@ -172,16 +171,20 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
               {message.text}
             </span>
 
-            {/* The status block - Tight alignment applied here */}
+            {/* The status block - Tight alignment and right push applied here */}
             <span 
               ref={timeRef} 
-              className={`flex items-center gap-1 flex-shrink-0 ${message.isOutgoing ? 'ml-auto' : 'ml-1'}`} // Added conditional margin
+              // Use ml-auto for both to push to the right edge of the bubble content
+              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
               style={{ 
                 fontSize: '13px', 
                 lineHeight: '1', 
-                verticalAlign: 'bottom', // Ensures the status aligns exactly with the text baseline
+                verticalAlign: 'bottom', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                transform: 'translateY(0)' 
+                transform: 'translateY(0)',
+                // For incoming (not outgoing) messages, justify content to the right edge
+                justifyContent: message.isOutgoing ? 'flex-start' : 'flex-end', 
+                minWidth: '50px' 
               }}>
               {/* Incoming: Only Time. Outgoing: Time + Checkmark */}
               {!message.isOutgoing && <span style={{ marginRight: '4px' }}>{message.time}</span>}
@@ -209,7 +212,7 @@ function ChatView({ selectedChat, onBack }) {
   const [messages, setMessages] = useState([
     { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
     { id: 2, text: 'Hello, this is a longer message that should force the layout into a multi-line state so we can test the inline timestamp feature.', time: '07:05 AM', isOutgoing: true },
-    { id: 3, text: 'This is a multi-line response from the other person to test the tight alignment on the left side.', time: '07:06 AM', isOutgoing: false },
+    { id: 3, text: 'This is a multi-line response from the other person to test the tight alignment on the left side, and ensure the time stamp is on the far right.', time: '07:06 AM', isOutgoing: false },
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
