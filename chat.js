@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION WITH CUSTOM SINGLE-LINE COERCION AND TIGHT OUTGOING STATUS
+// chat.js - FINAL VERSION: TIGHT OUTGOING MULTI-LINE STATUS SPACING FIX
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -171,26 +171,27 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 display: 'inline', 
                 wordBreak: 'break-word',
                 verticalAlign: 'bottom',
-                // NEW: Use negative margin to pull text closer to status on outgoing multi-line messages
-                marginRight: message.isOutgoing ? '-4px' : '0', 
+                // Removed negative margin fix
                 whiteSpace: 'pre-wrap'
               }}>
               {message.text}
             </span>
 
-            {/* The status block - Right push applied here */}
+            {/* The status block - Tight alignment fix applied here */}
             <span 
               ref={timeRef} 
-              // NEW: Use conditional right margin (mr-1) for a slight inward push on outgoing messages
-              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto ${message.isOutgoing ? 'mr-1' : ''}`} 
+              // Removed mr-1. Use ml-auto to push to right edge of content area.
+              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
               style={{ 
                 fontSize: '13px', 
                 lineHeight: '1', 
                 verticalAlign: 'bottom', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 transform: 'translateY(0)',
-                // Ensure time/status aligns to the right edge of its own block for both types
                 justifyContent: 'flex-end', 
+                // CRITICAL FIX: Push the block slightly left to tighten the space, 
+                // without relying on mr-1 which adds padding to the right edge.
+                marginRight: message.isOutgoing ? '-4px' : '0',
                 minWidth: '50px' 
               }}>
               {/* Incoming: Only Time. Outgoing: Time + Checkmark */}
