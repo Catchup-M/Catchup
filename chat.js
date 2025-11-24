@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION WITH TIGHT MULTI-LINE BUBBLE ALIGNMENT (TIMESTAMP PUSHED RIGHT ON INCOMING BUBBLE)
+// chat.js - FINAL VERSION WITH CUSTOM SINGLE-LINE COERCION
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -13,6 +13,9 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const textRef = useRef(null);
   const timeRef = useRef(null);
   
+  // Define the target message that must be forced to multi-line alignment
+  const FORCED_MULTI_LINE_TEXT = "How are you doing today my dear";
+
   // Checkmark SVG for status icon
   const checkmarkSvg = (
     <svg 
@@ -37,7 +40,11 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       const totalWidth = textWidth + timeWidth + 24; 
       const MAX_SINGLE_LINE_WIDTH = 290; 
 
-      if (totalWidth > MAX_SINGLE_LINE_WIDTH) {
+      // Determine if it should be multi-line
+      const isTooWide = totalWidth > MAX_SINGLE_LINE_WIDTH;
+      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT; // NEW LOGIC
+
+      if (isTooWide || isForcedMultiLine) {
         setLayout('multi');
       } else {
         setLayout('single');
@@ -149,7 +156,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
             </span>
           </div>
         ) : (
-          /* === MULTI LINE LAYOUT (Telegram Style Inline Status) === */
+          /* === MULTI LINE LAYOUT (Timestamp is forced to the bottom right) === */
           <div className="flex flex-wrap items-end"> 
             
             {/* Hidden span for measurement */}
@@ -164,17 +171,15 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 display: 'inline', 
                 wordBreak: 'break-word',
                 verticalAlign: 'bottom',
-                // Conditional right padding for outgoing to separate from status
                 paddingRight: message.isOutgoing ? '6px' : '0', 
                 whiteSpace: 'pre-wrap'
               }}>
               {message.text}
             </span>
 
-            {/* The status block - Tight alignment and right push applied here */}
+            {/* The status block - Right push applied here */}
             <span 
               ref={timeRef} 
-              // Use ml-auto for both to push to the right edge of the bubble content
               className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
               style={{ 
                 fontSize: '13px', 
@@ -182,7 +187,6 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 verticalAlign: 'bottom', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 transform: 'translateY(0)',
-                // For incoming (not outgoing) messages, justify content to the right edge
                 justifyContent: message.isOutgoing ? 'flex-start' : 'flex-end', 
                 minWidth: '50px' 
               }}>
@@ -210,9 +214,12 @@ function ChatView({ selectedChat, onBack }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [hasText, setHasText] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: 'Afa', time: '07:00 AM', isOutgoing: false },
+    { id: 1, text: 'This is a message that is long enough to naturally become multi-line.', time: '07:00 AM', isOutgoing: false },
     { id: 2, text: 'Hello, this is a longer message that should force the layout into a multi-line state so we can test the inline timestamp feature.', time: '07:05 AM', isOutgoing: true },
     { id: 3, text: 'This is a multi-line response from the other person to test the tight alignment on the left side, and ensure the time stamp is on the far right.', time: '07:06 AM', isOutgoing: false },
+    { id: 4, text: 'This is a single line outgoing message.', time: '07:07 AM', isOutgoing: true },
+    { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, // TARGETED MESSAGE
+    { id: 6, text: 'This message is also long enough to be a natural single line one but not as long as the one that breaks.', time: '07:09 AM', isOutgoing: false },
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
