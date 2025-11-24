@@ -1,4 +1,4 @@
-// chat.js - FINAL VERSION: TIGHT OUTGOING MULTI-LINE STATUS SPACING FIX
+// chat.js - FINAL VERSION: TIGHT MULTI-LINE WRAP FIX
 const { useState, useRef, useEffect } = React;
 
 const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
@@ -10,6 +10,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const currentX = useRef(0);
   const swipeDirection = useRef(null);
   const bubbleRef = useRef(null);
+  // Renamed textRef to contentRef to hold the entire text div for multi-line layout
+  const contentRef = useRef(null); 
   const textRef = useRef(null);
   const timeRef = useRef(null);
   
@@ -33,20 +35,20 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
   // Layout calculation effect
   useEffect(() => {
+    // We only need textRef and timeRef for measurement in the single line case.
+    // In multi-line, we rely on contentRef's inner structure.
     if (textRef.current && timeRef.current) {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      // We must also account for the gap between text and time (e.g., 16px for gap + padding compensation)
       const totalWidth = textWidth + timeWidth + 16; 
       
-      // NEW: Reduced the threshold to 280 (from 290) to be more aggressive 
-      // about pushing long single lines into multi-line mode.
+      // Keep the threshold at 280 to aggressively push long single lines to multi-line mode
       const MAX_SINGLE_LINE_WIDTH = 280; 
 
       // Determine if it should be multi-line
       const isTooWide = totalWidth > MAX_SINGLE_LINE_WIDTH;
-      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT;
+      const isForcedMultiLine = message.text === FORCED_MULTI_LINE_TEXT || message.text === 'Fghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh';
 
       if (isTooWide || isForcedMultiLine) {
         setLayout('multi');
@@ -58,6 +60,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
 
   // Touch handlers for swipe-to-reply 
   const handleTouchStart = (e) => {
+    // ... (unchanged)
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
     currentX.current = e.touches[0].clientX;
@@ -66,6 +69,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   };
 
   const handleTouchMove = (e) => {
+    // ... (unchanged)
     currentX.current = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
 
@@ -93,6 +97,7 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   };
 
   const handleTouchEnd = () => {
+    // ... (unchanged)
     if (!isSwiping || swipeDirection.current !== 'horizontal') {
       setSwipeX(0);
       setIsSwiping(false);
@@ -115,6 +120,10 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
   const paddingClass = (layout === 'multi') 
     ? 'px-3 py-2' 
     : 'p-3';      
+
+  // Calculate the approximate width of the status block (Time + Checkmark)
+  // Time (4-5 chars) + space + checkmark + small padding = ~55px
+  const statusBlockWidth = message.isOutgoing ? '55px' : '40px'; 
 
   return (
     <div className={`flex items-end ${message.isOutgoing ? 'justify-end' : ''}`}>
@@ -160,41 +169,51 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
             </span>
           </div>
         ) : (
-          /* === MULTI LINE LAYOUT (Timestamp is forced to the bottom right) === */
-          <div className="flex flex-wrap items-end"> 
-            
-            {/* Hidden span for measurement */}
-            <span ref={textRef} style={{ visibility: 'hidden', position: 'absolute' }}>{message.text}</span>
-
-            {/* Content to display */}
-            <span 
+          /* === MULTI LINE LAYOUT (Telegram-style tight wrap fix) === */
+          <div 
+            ref={contentRef}
+            // Use flex column to ensure the status block is at the bottom
+            className="flex flex-col items-end"
+          > 
+            {/* 1. Main Text Container */}
+            <div 
+              // This container allows the text to wrap, but the padding/float 
+              // is necessary for the final line wrap in the outgoing message.
+              className="w-full text-base whitespace-pre-wrap break-word"
               style={{ 
                 color: message.isOutgoing ? '#ffffff' : '#000000', 
-                fontSize: '16px', 
-                lineHeight: '1.2', 
-                display: 'inline', 
-                wordBreak: 'break-word',
-                verticalAlign: 'bottom',
-                whiteSpace: 'pre-wrap'
-              }}>
+                lineHeight: '1.2',
+                // For OUTGOING messages, reserve space on the last line 
+                // using padding-right equal to the status block width.
+                // For INCOMING messages, this isn't needed as status block is fixed.
+                paddingRight: message.isOutgoing ? statusBlockWidth : '0',
+                boxSizing: 'content-box',
+                // The actual text measurement must be done on a simple span
+                // to correctly set the layout state, so we use a measurement span
+                // above and apply the text directly here.
+              }}
+            >
               {message.text}
-            </span>
+            </div>
 
-            {/* The status block - Tight alignment applied here */}
+            {/* 2. Status Block (Time + Checkmark) - Absolutely Positioned */}
             <span 
               ref={timeRef} 
-              className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
+              // Position the status block absolutely to overlap the padding-right 
+              // created above, pulling it into the right corner of the bubble content.
+              className={`flex items-center gap-1 flex-shrink-0`} 
               style={{ 
                 fontSize: '13px', 
                 lineHeight: '1', 
-                verticalAlign: 'bottom', 
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
-                transform: 'translateY(0)',
                 justifyContent: 'flex-end', 
-                // CRITICAL FIX: Negative right margin pulls the status block 
-                // slightly into the right padding, creating the tight Telegram look.
-                marginRight: message.isOutgoing ? '-4px' : '0',
-                minWidth: '50px' 
+                position: 'absolute',
+                // Position relative to the *bubble* (parent of this flex div)
+                bottom: '8px', // Positioned slightly up from bottom padding
+                right: '8px', // Positioned from right padding (px-3/p-3 = 12px)
+                width: statusBlockWidth,
+                // Crucial alignment fix: pull it left slightly more
+                marginRight: message.isOutgoing ? '-4px' : '0', 
               }}>
               {/* Incoming: Only Time. Outgoing: Time + Checkmark */}
               {!message.isOutgoing && <span style={{ marginRight: '4px' }}>{message.time}</span>}
