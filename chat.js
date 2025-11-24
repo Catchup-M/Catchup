@@ -37,8 +37,12 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
       const textWidth = textRef.current.offsetWidth;
       const timeWidth = timeRef.current.offsetWidth;
       
-      const totalWidth = textWidth + timeWidth + 24; 
-      const MAX_SINGLE_LINE_WIDTH = 290; 
+      // We must also account for the gap between text and time (e.g., 16px for gap + padding compensation)
+      const totalWidth = textWidth + timeWidth + 16; 
+      
+      // NEW: Reduced the threshold to 280 (from 290) to be more aggressive 
+      // about pushing long single lines into multi-line mode.
+      const MAX_SINGLE_LINE_WIDTH = 280; 
 
       // Determine if it should be multi-line
       const isTooWide = totalWidth > MAX_SINGLE_LINE_WIDTH;
@@ -171,16 +175,14 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 display: 'inline', 
                 wordBreak: 'break-word',
                 verticalAlign: 'bottom',
-                // Removed negative margin fix
                 whiteSpace: 'pre-wrap'
               }}>
               {message.text}
             </span>
 
-            {/* The status block - Tight alignment fix applied here */}
+            {/* The status block - Tight alignment applied here */}
             <span 
               ref={timeRef} 
-              // Removed mr-1. Use ml-auto to push to right edge of content area.
               className={`flex items-center gap-1 flex-shrink-0 flex-grow-0 ml-auto`} 
               style={{ 
                 fontSize: '13px', 
@@ -189,8 +191,8 @@ const MessageBubble = ({ message, setReplyingTo, inputRef }) => {
                 color: message.isOutgoing ? '#dbeafe' : '#6b7280',
                 transform: 'translateY(0)',
                 justifyContent: 'flex-end', 
-                // CRITICAL FIX: Push the block slightly left to tighten the space, 
-                // without relying on mr-1 which adds padding to the right edge.
+                // CRITICAL FIX: Negative right margin pulls the status block 
+                // slightly into the right padding, creating the tight Telegram look.
                 marginRight: message.isOutgoing ? '-4px' : '0',
                 minWidth: '50px' 
               }}>
@@ -224,6 +226,7 @@ function ChatView({ selectedChat, onBack }) {
     { id: 4, text: 'This is a single line outgoing message.', time: '07:07 AM', isOutgoing: true },
     { id: 5, text: 'How are you doing today my dear', time: '07:08 AM', isOutgoing: true }, // TARGETED MESSAGE (now forced to multi-line)
     { id: 6, text: 'This message is also long enough to be a natural single line one but not as long as the one that breaks.', time: '07:09 AM', isOutgoing: false },
+    { id: 7, text: 'Fghhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh', time: '07:10 AM', isOutgoing: true }, // Should now be forced to multi-line due to reduced MAX_SINGLE_LINE_WIDTH
   ]);
   const [showFloatingDate, setShowFloatingDate] = useState(false);
   const [hasScrolledUp, setHasScrolledUp] = useState(false);
